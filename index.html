@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Administración de Cementerio</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ============================================================
+       SECCIÓN 1: PANTALLA DE LOGIN
+  ============================================================ -->
+  <div id="login-screen" class="login-screen">
+
+    <div class="login-panel-left">
+      <div class="login-brand">
+        <div class="login-logo-icon">
+          <i data-lucide="map-pin" aria-hidden="true"></i>
+        </div>
+        <h1 class="login-title-big">CementerioAdmin</h1>
+        <p class="login-subtitle">Sistema de Administración Interna</p>
+      </div>
+      <div class="login-decoration">
+        <div class="deco-grid" aria-hidden="true">
+          <div class="deco-cell occupied"></div>
+          <div class="deco-cell available"></div>
+          <div class="deco-cell occupied"></div>
+          <div class="deco-cell available"></div>
+          <div class="deco-cell available"></div>
+          <div class="deco-cell occupied"></div>
+          <div class="deco-cell available"></div>
+          <div class="deco-cell occupied"></div>
+          <div class="deco-cell occupied"></div>
+        </div>
+        <p class="deco-label">Gestión de parcelas por zonas A · B · C · D</p>
+      </div>
+    </div>
+
+    <div class="login-panel-right">
+      <div class="login-form-box">
+        <h2 class="login-form-title">Iniciar sesión</h2>
+        <p class="login-form-desc">Ingresa tus credenciales de administrador</p>
+
+        <div class="form-group">
+          <label for="username">Usuario</label>
+          <div class="input-wrapper">
+            <i data-lucide="user" class="input-icon" aria-hidden="true"></i>
+            <input type="text" id="username" placeholder="admin" autocomplete="username" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Contraseña</label>
+          <div class="input-wrapper">
+            <i data-lucide="lock" class="input-icon" aria-hidden="true"></i>
+            <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" />
+          </div>
+        </div>
+
+        <p id="login-error" class="login-error hidden" role="alert">
+          Usuario o contraseña incorrectos. Por favor verificá tus datos.
+        </p>
+
+        <button class="btn-login" onclick="iniciarSesion()">
+          Iniciar sesión
+          <i data-lucide="arrow-right" aria-hidden="true"></i>
+        </button>
+
+        <!--
+          ADVERTENCIA DE SEGURIDAD:
+          Eliminar o comentar este bloque antes de desplegar en producción.
+          Las credenciales de demo no deben ser visibles en entornos reales.
+        -->
+        <!-- <p class="login-hint">💡 Demo: usuario <strong>admin</strong> / contraseña <strong>1234</strong></p> -->
+      </div>
+    </div>
+
+  </div><!-- /login-screen -->
+
+
+  <!-- ============================================================
+       SECCIÓN 2: DASHBOARD PRINCIPAL
+  ============================================================ -->
+  <div id="dashboard" class="dashboard hidden">
+
+    <!-- SIDEBAR -->
+    <aside id="sidebar" class="sidebar" role="navigation" aria-label="Menú principal">
+
+      <div class="sidebar-brand">
+        <div class="sidebar-logo">
+          <i data-lucide="map-pin" aria-hidden="true"></i>
+        </div>
+        <div>
+          <span class="sidebar-title">CementerioAdmin</span>
+          <span class="sidebar-version">v1.0</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav">
+        <ul>
+          <li>
+            <a href="#" class="nav-item active" onclick="mostrarSeccion('inicio', this)" aria-current="page">
+              <i data-lucide="layout-dashboard" aria-hidden="true"></i>
+              <span>Inicio</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item" onclick="mostrarSeccion('difuntos', this)">
+              <i data-lucide="book-open" aria-hidden="true"></i>
+              <span>Difuntos</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item" onclick="mostrarSeccion('responsables', this)">
+              <i data-lucide="users" aria-hidden="true"></i>
+              <span>Responsables</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item" onclick="mostrarSeccion('parcelas', this)">
+              <i data-lucide="grid-2x2" aria-hidden="true"></i>
+              <span>Parcelas</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item" onclick="mostrarSeccion('mapa', this)">
+              <i data-lucide="map" aria-hidden="true"></i>
+              <span>Mapa</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item" onclick="mostrarSeccion('movimientos', this)">
+              <i data-lucide="activity" aria-hidden="true"></i>
+              <span>Movimientos</span>
+            </a>
+          </li>
+          <li>
+            <a href="#" class="nav-item" onclick="mostrarSeccion('buscar', this)">
+              <i data-lucide="search" aria-hidden="true"></i>
+              <span>Buscar</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button class="btn-logout" onclick="cerrarSesion()">
+          <i data-lucide="log-out" aria-hidden="true"></i>
+          <span>Cerrar sesión</span>
+        </button>
+      </div>
+
+    </aside><!-- /sidebar -->
+
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="main-content" id="main-content">
+
+      <header class="topbar">
+        <button class="topbar-menu-btn" onclick="toggleSidebar()" aria-label="Abrir o cerrar menú lateral">
+          <i data-lucide="menu" aria-hidden="true"></i>
+        </button>
+        <h2 id="page-title" class="topbar-title">Inicio</h2>
+        <div class="topbar-user">
+          <i data-lucide="user-circle" aria-hidden="true"></i>
+          <span id="topbar-username">admin</span>
+        </div>
+      </header>
+
+      <div class="content-area">
+
+        <!-- ========================
+             SECCIÓN: INICIO
+        ======================== -->
+        <section id="sec-inicio" class="section active">
+          <div class="section-header">
+            <h3>Panel de Control</h3>
+            <p>Resumen general del sistema</p>
+          </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-icon green"><i data-lucide="grid-2x2" aria-hidden="true"></i></div>
+              <div class="stat-info">
+                <span class="stat-number" id="stat-total">—</span>
+                <span class="stat-label">Parcelas totales</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon red"><i data-lucide="x-circle" aria-hidden="true"></i></div>
+              <div class="stat-info">
+                <span class="stat-number" id="stat-ocupadas">—</span>
+                <span class="stat-label">Parcelas ocupadas</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon teal"><i data-lucide="check-circle" aria-hidden="true"></i></div>
+              <div class="stat-info">
+                <span class="stat-number" id="stat-disponibles">—</span>
+                <span class="stat-label">Parcelas disponibles</span>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon blue"><i data-lucide="book-open" aria-hidden="true"></i></div>
+              <div class="stat-info">
+                <span class="stat-number" id="stat-difuntos">—</span>
+                <span class="stat-label">Difuntos registrados</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="table-card">
+            <div class="table-card-header">
+              <h4>Últimos registros</h4>
+            </div>
+            <table class="data-table" aria-label="Últimos registros de difuntos">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Nombre del difunto</th>
+                  <th scope="col">Zona</th>
+                  <th scope="col">Parcela</th>
+                  <th scope="col">Fecha ingreso</th>
+                  <th scope="col">Estado</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-inicio-body">
+                <!-- skeletonRows(6) insertado por JS -->
+              </tbody>
+            </table>
+          </div>
+
+        </section><!-- /sec-inicio -->
+
+
+        <!-- ========================
+             SECCIÓN: DIFUNTOS
+        ======================== -->
+        <section id="sec-difuntos" class="section">
+          <div class="section-header">
+            <h3>Registro de Difuntos</h3>
+            <p>Listado de personas registradas en el sistema</p>
+          </div>
+          <div class="table-card">
+            <div class="table-card-header">
+              <h4>Difuntos registrados</h4>
+              <button class="btn-primary" onclick="abrirModal()">
+                <i data-lucide="plus" aria-hidden="true"></i> Nuevo registro
+              </button>
+            </div>
+            <table class="data-table" aria-label="Listado completo de difuntos">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Nombre completo</th>
+                  <th scope="col">CI</th>
+                  <th scope="col">Fecha nacimiento</th>
+                  <th scope="col">Fecha defunción</th>
+                  <th scope="col">Parcela</th>
+                  <th scope="col">Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-difuntos-body">
+                <!-- skeletonRows(7) insertado por JS -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- MODAL: Registrar nuevo difunto -->
+          <!--
+            MEJORA: Los estilos inline fueron movidos a style.css
+            bajo las clases .modal-overlay y .modal-box
+          -->
+          <div
+            id="modal-difunto"
+            class="modal-overlay hidden"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="modal-difunto-titulo"
+          >
+            <div class="modal-box">
+              <div class="modal-header">
+                <h3 id="modal-difunto-titulo">Registrar nuevo difunto</h3>
+                <button class="btn-close" onclick="cerrarModal()" aria-label="Cerrar modal">
+                  <i data-lucide="x" aria-hidden="true"></i>
+                </button>
+              </div>
+              <form id="form-difunto" onsubmit="registrarDifunto(event)" novalidate>
+                <div class="form-group">
+                  <label for="f-nombre">Nombre *</label>
+                  <div class="input-wrapper">
+                    <input type="text" id="f-nombre" placeholder="Ej: María" required autocomplete="off" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="f-apellido">Apellido *</label>
+                  <div class="input-wrapper">
+                    <input type="text" id="f-apellido" placeholder="Ej: González Soto" required autocomplete="off" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="f-ci">Cédula de identidad</label>
+                  <div class="input-wrapper">
+                    <!--
+                      MEJORA: patrón de validación para CI paraguaya.
+                      Acepta formatos: 1234567 o 1.234.567
+                    -->
+                    <input
+                      type="text"
+                      id="f-ci"
+                      placeholder="Ej: 1.234.567"
+                      pattern="[\d.]{6,10}"
+                      title="Ingresá solo números, con o sin puntos. Ej: 1234567"
+                      autocomplete="off"
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="f-nacimiento">Fecha de nacimiento</label>
+                  <div class="input-wrapper">
+                    <!-- max se setea dinámicamente en JS para no superar la fecha de defunción -->
+                    <input type="date" id="f-nacimiento" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="f-defuncion">Fecha de defunción *</label>
+                  <div class="input-wrapper">
+                    <input type="date" id="f-defuncion" required max="" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="f-causa">Causa de defunción</label>
+                  <div class="input-wrapper">
+                    <input type="text" id="f-causa" placeholder="Opcional" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="f-parcela">Parcela disponible *</label>
+                  <select id="f-parcela" class="select-field" required>
+                    <option value="">Cargando parcelas...</option>
+                  </select>
+                </div>
+
+                <!-- Separador visual para la sección de responsable -->
+                <hr class="form-divider" />
+                <p class="form-section-label">
+                  <i data-lucide="user-check" aria-hidden="true"></i>
+                  Datos del responsable (opcional)
+                </p>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="f-resp-nombre">Nombre</label>
+                    <div class="input-wrapper">
+                      <input type="text" id="f-resp-nombre" placeholder="Ej: Juan" autocomplete="off" />
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="f-resp-apellido">Apellido</label>
+                    <div class="input-wrapper">
+                      <input type="text" id="f-resp-apellido" placeholder="Ej: González" autocomplete="off" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="f-resp-ci">CI del responsable</label>
+                    <div class="input-wrapper">
+                      <input type="text" id="f-resp-ci" placeholder="Ej: 2.345.678" pattern="[\d.]{6,10}" autocomplete="off" />
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="f-resp-parentesco">Parentesco</label>
+                    <div class="input-wrapper">
+                      <input type="text" id="f-resp-parentesco" placeholder="Ej: Hijo/a, Cónyuge" autocomplete="off" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="f-resp-telefono">Teléfono</label>
+                    <div class="input-wrapper">
+                      <input type="tel" id="f-resp-telefono" placeholder="Ej: 0981 123 456" autocomplete="off" />
+                    </div>
+                  </div>
+                  <div class="form-group">
+                    <label for="f-resp-email">Email</label>
+                    <div class="input-wrapper">
+                      <input type="email" id="f-resp-email" placeholder="Ej: juan@mail.com" autocomplete="off" />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label for="f-resp-direccion">Dirección</label>
+                  <div class="input-wrapper">
+                    <input type="text" id="f-resp-direccion" placeholder="Ej: Av. Mariscal López 123, Asunción" autocomplete="off" />
+                  </div>
+                </div>
+
+                <button type="submit" class="btn-login" style="margin-top:8px;">
+                  <i data-lucide="save" aria-hidden="true"></i> Guardar registro
+                </button>
+              </form>
+            </div>
+          </div>
+
+        </section><!-- /sec-difuntos -->
+
+
+        <!-- ========================
+             SECCIÓN: RESPONSABLES
+        ======================== -->
+        <section id="sec-responsables" class="section">
+          <div class="section-header">
+            <h3>Responsables</h3>
+            <p>Personas a cargo del seguimiento de cada difunto</p>
+          </div>
+          <div class="table-card">
+            <div class="table-card-header">
+              <h4>Listado de responsables</h4>
+            </div>
+            <table class="data-table" aria-label="Listado de responsables">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Nombre completo</th>
+                  <th scope="col">CI</th>
+                  <th scope="col">Parentesco</th>
+                  <th scope="col">Difunto a cargo</th>
+                  <th scope="col">Teléfono</th>
+                  <th scope="col">Email</th>
+                  <th scope="col">Dirección</th>
+                  <th scope="col">Registrado</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-responsables-body">
+                <!-- skeletonRows(9) insertado por JS -->
+              </tbody>
+            </table>
+          </div>
+        </section><!-- /sec-responsables -->
+
+
+        <!-- ========================
+             SECCIÓN: PARCELAS
+        ======================== -->
+        <section id="sec-parcelas" class="section">
+          <div class="section-header">
+            <h3>Gestión de Parcelas</h3>
+            <p>Estado de todas las parcelas por zona</p>
+          </div>
+          <div class="table-card">
+            <div class="table-card-header">
+              <h4>Listado de parcelas</h4>
+            </div>
+            <table class="data-table" aria-label="Listado de parcelas por zona">
+              <thead>
+                <tr>
+                  <th scope="col">Parcela</th>
+                  <th scope="col">Zona</th>
+                  <th scope="col">Estado</th>
+                  <th scope="col">Difunto asignado</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-parcelas-body">
+                <!-- skeletonRows(4) insertado por JS -->
+              </tbody>
+            </table>
+          </div>
+        </section><!-- /sec-parcelas -->
+
+
+        <!-- ========================
+             SECCIÓN: MAPA INTERACTIVO
+        ======================== -->
+        <section id="sec-mapa" class="section">
+          <div class="section-header">
+            <h3>Mapa de Parcelas</h3>
+            <p>Visualización interactiva por zonas — hacé clic en una casilla para ver información</p>
+          </div>
+
+          <div class="map-legend" role="list" aria-label="Referencias del mapa">
+            <div class="legend-item" role="listitem">
+              <div class="legend-color green" aria-hidden="true"></div>
+              <span>Disponible</span>
+            </div>
+            <div class="legend-item" role="listitem">
+              <div class="legend-color red" aria-hidden="true"></div>
+              <span>Ocupada</span>
+            </div>
+          </div>
+
+          <div class="map-container">
+            <div class="zone-block">
+              <div class="zone-header">Zona A</div>
+              <div class="zone-grid" data-zone="A" id="zona-A" role="grid" aria-label="Parcelas zona A"></div>
+            </div>
+            <div class="zone-block">
+              <div class="zone-header">Zona B</div>
+              <div class="zone-grid" data-zone="B" id="zona-B" role="grid" aria-label="Parcelas zona B"></div>
+            </div>
+            <div class="zone-block">
+              <div class="zone-header">Zona C</div>
+              <div class="zone-grid" data-zone="C" id="zona-C" role="grid" aria-label="Parcelas zona C"></div>
+            </div>
+            <div class="zone-block">
+              <div class="zone-header">Zona D</div>
+              <div class="zone-grid" data-zone="D" id="zona-D" role="grid" aria-label="Parcelas zona D"></div>
+            </div>
+          </div>
+
+          <!-- Panel de información al hacer clic en una parcela -->
+          <div id="info-panel" class="info-panel hidden" role="region" aria-label="Información de parcela seleccionada" aria-live="polite">
+            <div class="info-panel-header">
+              <h4 id="info-titulo">Parcela: —</h4>
+              <button onclick="cerrarPanel()" class="btn-close" aria-label="Cerrar panel de información">
+                <i data-lucide="x" aria-hidden="true"></i>
+              </button>
+            </div>
+            <div class="info-panel-body">
+              <div class="info-row">
+                <span class="info-label">Estado:</span>
+                <span id="info-estado">—</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Zona:</span>
+                <span id="info-zona">—</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Difunto:</span>
+                <span id="info-difunto">—</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Fecha ingreso:</span>
+                <span id="info-fecha">—</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Responsable:</span>
+                <span id="info-responsable">—</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Teléfono responsable:</span>
+                <span id="info-responsable-tel">—</span>
+              </div>
+            </div>
+          </div>
+
+        </section><!-- /sec-mapa -->
+
+
+        <!-- ========================
+             SECCIÓN: MOVIMIENTOS
+        ======================== -->
+        <section id="sec-movimientos" class="section">
+          <div class="section-header">
+            <h3>Movimientos</h3>
+            <p>Historial de ingresos y cambios de parcelas</p>
+          </div>
+          <div class="table-card">
+            <div class="table-card-header">
+              <h4>Historial de movimientos</h4>
+            </div>
+            <table class="data-table" aria-label="Historial de movimientos">
+              <thead>
+                <tr>
+                  <th scope="col">#</th>
+                  <th scope="col">Tipo</th>
+                  <th scope="col">Descripción</th>
+                  <th scope="col">Parcela</th>
+                  <th scope="col">Fecha</th>
+                </tr>
+              </thead>
+              <tbody id="tabla-mov-body">
+                <!-- skeletonRows(5) insertado por JS -->
+              </tbody>
+            </table>
+          </div>
+        </section><!-- /sec-movimientos -->
+
+
+        <!-- ========================
+             SECCIÓN: BUSCAR
+        ======================== -->
+        <section id="sec-buscar" class="section">
+          <div class="section-header">
+            <h3>Buscar</h3>
+            <p>Buscá difuntos, responsables o parcelas por nombre, CI o número</p>
+          </div>
+          <div class="search-box-wrapper">
+            <div class="input-wrapper large">
+              <i data-lucide="search" class="input-icon" aria-hidden="true"></i>
+              <!--
+                MEJORA: oninput usa debounceBuscar (definido en script.js)
+                para no disparar la consulta en cada tecla.
+                El debounce espera 300ms de inactividad antes de ejecutar.
+              -->
+              <input
+                type="search"
+                id="search-input"
+                placeholder="Ej: María González, CI 1234567, parcela A-05..."
+                oninput="debounceBuscar(this.value)"
+                aria-label="Campo de búsqueda"
+                autocomplete="off"
+              />
+            </div>
+          </div>
+          <div id="search-results" class="search-results" aria-live="polite" aria-label="Resultados de búsqueda">
+            <p class="search-hint">Escribí algo para buscar...</p>
+          </div>
+        </section><!-- /sec-buscar -->
+
+      </div><!-- /content-area -->
+    </main><!-- /main-content -->
+
+  </div><!-- /dashboard -->
+
+
+  <script src="script.js"></script>
+  <script>lucide.createIcons();</script>
+
+</body>
+</html>

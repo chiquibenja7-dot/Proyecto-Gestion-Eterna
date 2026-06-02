@@ -1,0 +1,984 @@
+/* ================================================================
+   style.css — Sistema de Administración de Cementerio
+   Proyecto educativo — Bachillerato Técnico en Informática
+
+   ESTRUCTURA DEL ARCHIVO:
+   1. Variables CSS (colores, fuentes, medidas)
+   2. Reset y base
+   3. Pantalla de Login
+   4. Dashboard: layout general
+   5. Sidebar / Menú lateral
+   6. Topbar / Encabezado
+   7. Secciones de contenido
+   8. Componentes reutilizables (tarjetas, tablas, badges)
+   9. Mapa interactivo
+   10. Buscador
+   11. Utilidades (hidden, etc.)
+================================================================ */
+
+
+/* ================================================================
+   1. VARIABLES CSS
+   Definimos colores y valores una sola vez aquí.
+   Si queremos cambiar un color, solo lo cambiamos en un lugar.
+================================================================ */
+:root {
+  /* Colores principales */
+  --color-bg:        #f0f2f5;      /* fondo general */
+  --color-white:     #ffffff;
+  --color-sidebar:   #1a2236;      /* azul oscuro del sidebar */
+  --color-sidebar-hover: #243047;
+  --color-accent:    #3b82f6;      /* azul principal */
+  --color-accent-dark: #2563eb;
+
+  /* Texto */
+  --color-text:      #1e293b;
+  --color-text-muted:#64748b;
+
+  /* Estados de parcelas */
+  --color-available: #22c55e;      /* verde: disponible */
+  --color-occupied:  #ef4444;      /* rojo: ocupada */
+
+  /* Bordes y sombras */
+  --color-border:    #e2e8f0;
+  --shadow-sm:       0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md:       0 4px 12px rgba(0,0,0,0.1);
+
+  /* Medidas fijas */
+  --sidebar-width:   240px;
+  --topbar-height:   60px;
+
+  /* Fuentes */
+  --font-body:       'DM Sans', sans-serif;
+  --font-display:    'DM Serif Display', serif;
+
+  /* Bordes redondeados */
+  --radius-sm:       6px;
+  --radius-md:       10px;
+  --radius-lg:       16px;
+}
+
+
+/* ================================================================
+   2. RESET Y BASE
+   Eliminamos estilos por defecto del navegador.
+================================================================ */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--color-bg);
+  color: var(--color-text);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+ul {
+  list-style: none;
+}
+
+button {
+  cursor: pointer;
+  font-family: var(--font-body);
+}
+
+input {
+  font-family: var(--font-body);
+}
+
+
+/* ================================================================
+   3. PANTALLA DE LOGIN
+   Dividida en dos paneles: izquierdo (decorativo) y derecho (form)
+================================================================ */
+
+/* Contenedor principal del login: flexbox lado a lado */
+.login-screen {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ----- Panel izquierdo ----- */
+.login-panel-left {
+  width: 45%;
+  background-color: var(--color-sidebar);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 60px 40px;
+  gap: 48px;
+}
+
+/* Logo e identidad visual */
+.login-brand {
+  text-align: center;
+  color: white;
+}
+
+.login-logo-icon {
+  width: 64px;
+  height: 64px;
+  background-color: var(--color-accent);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+}
+
+.login-logo-icon svg {
+  width: 32px;
+  height: 32px;
+  color: white;
+}
+
+.login-title-big {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  color: white;
+  margin-bottom: 8px;
+}
+
+.login-subtitle {
+  color: #94a3b8;
+  font-size: 0.95rem;
+}
+
+/* Cuadrícula decorativa que representa parcelas */
+.login-decoration {
+  text-align: center;
+}
+
+.deco-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 36px);
+  grid-template-rows: repeat(3, 36px);
+  gap: 6px;
+  margin: 0 auto 12px;
+  width: fit-content;
+}
+
+.deco-cell {
+  border-radius: 4px;
+  opacity: 0.7;
+}
+
+.deco-cell.available {
+  background-color: var(--color-available);
+}
+
+.deco-cell.occupied {
+  background-color: var(--color-occupied);
+}
+
+.deco-label {
+  color: #64748b;
+  font-size: 0.8rem;
+}
+
+/* ----- Panel derecho (formulario) ----- */
+.login-panel-right {
+  width: 55%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 40px;
+  background-color: var(--color-bg);
+}
+
+.login-form-box {
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-form-title {
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: 8px;
+}
+
+.login-form-desc {
+  color: var(--color-text-muted);
+  margin-bottom: 32px;
+}
+
+/* Grupos de campo: label + input */
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 6px;
+  font-size: 0.9rem;
+}
+
+/* Wrapper del input con ícono a la izquierda */
+.input-wrapper {
+  position: relative;
+}
+
+.input-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 18px;
+  height: 18px;
+  color: var(--color-text-muted);
+}
+
+.input-wrapper input {
+  width: 100%;
+  padding: 11px 14px 11px 40px; /* espacio a la izquierda para el ícono */
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.95rem;
+  background-color: var(--color-white);
+  color: var(--color-text);
+  transition: border-color 0.2s;
+}
+
+/* Efecto al hacer foco en el input */
+.input-wrapper input:focus {
+  outline: none;
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+}
+
+/* Mensaje de error del login */
+.login-error {
+  color: var(--color-occupied);
+  font-size: 0.875rem;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  background: #fef2f2;
+  border-radius: var(--radius-sm);
+  border: 1px solid #fecaca;
+}
+
+/* Botón principal de login */
+.btn-login {
+  width: 100%;
+  padding: 12px 20px;
+  background-color: var(--color-accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 1rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background-color 0.2s;
+  margin-top: 8px;
+}
+
+.btn-login:hover {
+  background-color: var(--color-accent-dark);
+}
+
+.btn-login svg {
+  width: 18px;
+  height: 18px;
+}
+
+.login-hint {
+  margin-top: 16px;
+  font-size: 0.85rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  background: #f1f5f9;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+}
+
+
+/* ================================================================
+   4. DASHBOARD — LAYOUT GENERAL
+   Sidebar fijo a la izquierda + contenido a la derecha.
+================================================================ */
+
+/* El dashboard ocupa toda la pantalla y usa flex */
+.dashboard {
+  display: flex;
+  min-height: 100vh;
+}
+
+/* La sección de contenido ocupa el espacio restante */
+.main-content {
+  flex: 1;
+  /* Dejamos espacio igual al ancho del sidebar */
+  margin-left: var(--sidebar-width);
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+
+/* ================================================================
+   5. SIDEBAR / MENÚ LATERAL
+================================================================ */
+
+.sidebar {
+  width: var(--sidebar-width);
+  background-color: var(--color-sidebar);
+  position: fixed;       /* Se queda fijo aunque hagas scroll */
+  top: 0;
+  left: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  z-index: 100;
+}
+
+/* Logo/marca en la parte superior del sidebar */
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.07);
+}
+
+.sidebar-logo {
+  width: 36px;
+  height: 36px;
+  background-color: var(--color-accent);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sidebar-logo svg {
+  width: 20px;
+  height: 20px;
+  color: white;
+}
+
+.sidebar-title {
+  color: white;
+  font-weight: 600;
+  font-size: 0.95rem;
+  display: block;
+  line-height: 1.2;
+}
+
+.sidebar-version {
+  color: #64748b;
+  font-size: 0.75rem;
+  display: block;
+}
+
+/* Navegación del sidebar */
+.sidebar-nav {
+  flex: 1;
+  padding: 16px 12px;
+  overflow-y: auto;
+}
+
+.sidebar-nav ul {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Cada ítem del menú */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  color: #94a3b8;
+  font-size: 0.9rem;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.nav-item svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+}
+
+/* Hover: resalta levemente */
+.nav-item:hover {
+  background-color: var(--color-sidebar-hover);
+  color: white;
+}
+
+/* Activo: ícono azul y texto blanco */
+.nav-item.active {
+  background-color: var(--color-accent);
+  color: white;
+}
+
+/* Botón de cerrar sesión al fondo */
+.sidebar-footer {
+  padding: 16px 12px;
+  border-top: 1px solid rgba(255,255,255,0.07);
+}
+
+.btn-logout {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  background: none;
+  border: none;
+  border-radius: var(--radius-sm);
+  color: #94a3b8;
+  font-size: 0.9rem;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.btn-logout:hover {
+  background-color: rgba(239,68,68,0.12);
+  color: #ef4444;
+}
+
+.btn-logout svg {
+  width: 18px;
+  height: 18px;
+}
+
+
+/* ================================================================
+   6. TOPBAR / ENCABEZADO SUPERIOR
+================================================================ */
+
+.topbar {
+  height: var(--topbar-height);
+  background-color: var(--color-white);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  gap: 16px;
+  position: sticky;  /* Se queda arriba al hacer scroll */
+  top: 0;
+  z-index: 50;
+}
+
+/* Botón hamburguesa (para móvil, funcionalidad en JS) */
+.topbar-menu-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  padding: 6px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+}
+
+.topbar-menu-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
+.topbar-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  flex: 1;
+}
+
+/* Usuario en la esquina derecha */
+.topbar-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border);
+}
+
+.topbar-user svg {
+  width: 18px;
+  height: 18px;
+}
+
+
+/* ================================================================
+   7. ÁREA DE CONTENIDO Y SECCIONES
+================================================================ */
+
+.content-area {
+  flex: 1;
+  padding: 28px 24px;
+}
+
+/* Cada sección está oculta por defecto */
+.section {
+  display: none;
+}
+
+/* Solo la sección activa se muestra */
+.section.active {
+  display: block;
+}
+
+/* Encabezado de sección */
+.section-header {
+  margin-bottom: 24px;
+}
+
+.section-header h3 {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.section-header p {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+
+/* ================================================================
+   8. COMPONENTES REUTILIZABLES
+================================================================ */
+
+/* ----- Cuadrícula de tarjetas de estadísticas ----- */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.stat-card {
+  background: var(--color-white);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid var(--color-border);
+}
+
+.stat-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Variantes de color para los íconos de stats */
+.stat-icon.green  { background: #dcfce7; color: #16a34a; }
+.stat-icon.red    { background: #fee2e2; color: #dc2626; }
+.stat-icon.teal   { background: #ccfbf1; color: #0d9488; }
+.stat-icon.blue   { background: #dbeafe; color: #2563eb; }
+
+.stat-icon svg { width: 22px; height: 22px; }
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-number {
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.stat-label {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+  margin-top: 4px;
+}
+
+/* ----- Tarjeta con tabla ----- */
+.table-card {
+  background: var(--color-white);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+.table-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.table-card-header h4 {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+/* Tabla de datos */
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.data-table thead th {
+  text-align: left;
+  padding: 12px 20px;
+  background: #f8fafc;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.data-table tbody td {
+  padding: 12px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tbody tr:hover {
+  background-color: #f8fafc;
+}
+
+/* ----- Badges de estado ----- */
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.badge.green {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.badge.red {
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.badge.blue {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+/* ----- Botón primario ----- */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  background: var(--color-accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+  background: var(--color-accent-dark);
+}
+
+.btn-primary svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* ----- Botones de íconos en tablas ----- */
+.btn-icon {
+  background: none;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 5px 7px;
+  color: var(--color-text-muted);
+  transition: all 0.15s;
+  margin-right: 4px;
+}
+
+.btn-icon:hover {
+  background: var(--color-bg);
+  color: var(--color-accent);
+  border-color: var(--color-accent);
+}
+
+.btn-icon svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+
+/* ================================================================
+   9. MAPA INTERACTIVO
+================================================================ */
+
+/* Leyenda de colores */
+.map-legend {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 20px;
+  align-items: center;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.875rem;
+}
+
+.legend-color {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}
+
+.legend-color.green { background: var(--color-available); }
+.legend-color.red   { background: var(--color-occupied); }
+
+/* Contenedor con las 4 zonas en una cuadrícula 2x2 */
+.map-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+/* Bloque de una zona */
+.zone-block {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Encabezado de zona (ej: "Zona A") */
+.zone-header {
+  background: var(--color-sidebar);
+  color: white;
+  padding: 8px 16px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  letter-spacing: 0.05em;
+}
+
+/* Cuadrícula de parcelas dentro de la zona */
+/* grid-template-columns es un CSS trick: crea columnas iguales */
+/* repeat(5, 1fr) = 5 columnas de igual tamaño */
+.zone-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+  padding: 12px;
+}
+
+/* Cada casilla individual del mapa */
+.parcela-cell {
+  aspect-ratio: 1;        /* hace que sea cuadrada */
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: white;
+  transition: transform 0.1s, opacity 0.1s;
+  border: 2px solid transparent;
+  user-select: none;
+}
+
+.parcela-cell:hover {
+  transform: scale(1.1);
+  opacity: 0.85;
+  z-index: 1;
+}
+
+/* Clases de estado de la casilla */
+.parcela-cell.available {
+  background-color: var(--color-available);
+}
+
+.parcela-cell.occupied {
+  background-color: var(--color-occupied);
+}
+
+/* Casilla seleccionada: borde azul */
+.parcela-cell.selected {
+  border-color: var(--color-accent);
+  outline: 3px solid rgba(59,130,246,0.4);
+}
+
+/* Panel de información al hacer clic */
+.info-panel {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+  max-width: 400px;
+}
+
+.info-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.info-panel-header h4 {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+}
+
+.btn-close:hover { color: var(--color-text); }
+.btn-close svg { width: 16px; height: 16px; }
+
+.info-panel-body {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.info-row {
+  display: flex;
+  gap: 12px;
+  font-size: 0.875rem;
+}
+
+.info-label {
+  font-weight: 600;
+  width: 120px;
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+
+/* ================================================================
+   10. BUSCADOR
+================================================================ */
+
+.search-box-wrapper {
+  margin-bottom: 20px;
+}
+
+/* Reutilizamos .input-wrapper pero más grande */
+.input-wrapper.large input {
+  padding: 14px 16px 14px 44px;
+  font-size: 1rem;
+  border-radius: var(--radius-md);
+}
+
+.search-results {
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 20px;
+  min-height: 120px;
+  box-shadow: var(--shadow-sm);
+}
+
+.search-hint {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+/* Cada resultado de búsqueda */
+.search-result-item {
+  padding: 12px;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.875rem;
+}
+
+.search-result-item:last-child {
+  border-bottom: none;
+}
+
+.search-result-item strong {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.search-no-results {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+
+/* ================================================================
+   11. UTILIDADES
+================================================================ */
+
+/* .hidden oculta cualquier elemento */
+.hidden {
+  display: none !important;
+}
+
+
+/* ================================================================
+   12. MODAL (ventana emergente de nuevo difunto)
+   Arreglamos el scroll para que se pueda ver todo el formulario.
+
+   IMPORTANTE: NO usamos !important en display para que
+   la clase .hidden pueda ocultarlo correctamente.
+================================================================ */
+
+/* Cuando el modal NO tiene la clase hidden, se muestra así:
+   Usamos una clase .modal-visible que agregamos con JS */
+.modal-visible {
+  display: flex !important;
+  align-items: flex-start;
+  justify-content: center;
+  overflow-y: auto;
+  padding: 24px 16px;
+}
+
+/* La caja blanca del formulario */
+#modal-difunto > div {
+  width: 100%;
+  max-width: 480px;
+  margin: auto;
+  position: relative;
+}
