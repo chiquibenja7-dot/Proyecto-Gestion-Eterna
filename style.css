@@ -982,3 +982,20 @@ input {
   margin: auto;
   position: relative;
 }
+/* Botón ícono rojo para eliminar */
+.btn-icon.danger {
+  color: var(--color-text-danger, #b91c1c);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--radius-sm, 4px);
+  display: inline-flex;
+  align-items: center;
+  transition: background 0.15s;
+}
+ 
+.btn-icon.danger:hover {
+  background: var(--color-background-danger, #fee2e2);
+}
+ 

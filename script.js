@@ -174,7 +174,7 @@ async function cargarDifuntos() {
 
   const { data, error } = await supabaseClient
     .from('difuntos')
-    .select('id, nombres, apellido, ci, fecha_nacimiento, fecha_defuncion, parcelas(codigo, zonas(nombre))')
+    .select('id, nombres, apellido, ci, fecha_nacimiento, fecha_defuncion, parcela_id, parcelas(codigo, zonas(nombre))')
     .order('registrado_en', { ascending: false });
 
   if (error) { console.error("cargarDifuntos:", error.message); return; }
@@ -195,11 +195,71 @@ async function cargarDifuntos() {
       <td>${formatearFecha(d.fecha_nacimiento)}</td>
       <td>${formatearFecha(d.fecha_defuncion)}</td>
       <td>${d.parcelas?.codigo || '-'}</td>
-      <td><button class="btn-icon" title="Ver" onclick="verDifunto(${d.id})"><i data-lucide="eye"></i></button></td>
+      <td style="display:flex;gap:6px;">
+        <button class="btn-icon" title="Ver" onclick="verDifunto(${d.id})">
+          <i data-lucide="eye"></i>
+        </button>
+        <button class="btn-icon danger" title="Eliminar" onclick="eliminarDifunto(${d.id}, ${d.parcela_id || null})">
+          <i data-lucide="trash-2"></i>
+        </button>
+      </td>
     </tr>
   `).join('');
 
   lucide.createIcons();
+}
+
+
+/* ================================================================
+   ELIMINAR DIFUNTO
+   1. Pide confirmación
+   2. Elimina el responsable asociado (CASCADE lo hace automático
+      si configuraste ON DELETE CASCADE, si no lo hacemos manual)
+   3. Elimina el difunto
+   4. Libera la parcela → estado = 'disponible'
+   5. Registra movimiento de baja
+================================================================ */
+
+async function eliminarDifunto(difuntoId, parcelaId) {
+  const confirmado = confirm("¿Estás seguro de que querés eliminar este difunto y liberar su parcela? Esta acción no se puede deshacer.");
+  if (!confirmado) return;
+
+  // Paso 1: eliminar responsable manualmente por si no hay CASCADE configurado
+  await supabaseClient
+    .from('responsables')
+    .delete()
+    .eq('difunto_id', difuntoId);
+
+  // Paso 2: eliminar el difunto
+  const { error: errorDelete } = await supabaseClient
+    .from('difuntos')
+    .delete()
+    .eq('id', difuntoId);
+
+  if (errorDelete) {
+    alert("Error al eliminar: " + errorDelete.message);
+    return;
+  }
+
+  // Paso 3: liberar la parcela
+  if (parcelaId) {
+    await supabaseClient
+      .from('parcelas')
+      .update({ estado: 'disponible' })
+      .eq('id', parcelaId);
+
+    // Paso 4: registrar movimiento de baja
+    await supabaseClient.from('movimientos').insert([{
+      tipo:        'baja',
+      descripcion: 'Difunto eliminado del sistema. Parcela liberada.',
+      parcela_id:  parcelaId
+    }]);
+  }
+
+  // Paso 5: refrescar vistas
+  await cargarInicio();
+  await cargarDifuntos();
+  await generarMapa();
 }
 
 
