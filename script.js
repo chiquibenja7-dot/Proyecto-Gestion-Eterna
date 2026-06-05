@@ -328,6 +328,7 @@ async function cargarParcelas() {
   if (!tbody || !parcelas) return;
 
   // Mapa rápido: parcela_id → nombre del difunto
+
   const difuntosPorParcela = {};
   (difuntos || []).forEach(d => {
     if (d.parcela_id) difuntosPorParcela[d.parcela_id] = d.nombres + ' ' + d.apellido;
