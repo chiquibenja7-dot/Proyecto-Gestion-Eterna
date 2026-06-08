@@ -257,9 +257,7 @@ async function eliminarDifunto(difuntoId, parcelaId) {
   }
 
   // Paso 5: refrescar vistas
-  await cargarInicio();
-  await cargarDifuntos();
-  await generarMapa();
+ await Promise.all([cargarInicio(), cargarDifuntos(), generarMapa()]); 
 }
 
 
