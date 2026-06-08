@@ -456,7 +456,7 @@ function mostrarInfoParcela(parcela) {
   estadoEl.style.color = parcela.estado === 'disponible' ? "#16a34a" : "#b91c1c";
 
   const d = parcela._difunto || null;
-  const r = d?.responsables?.[0] || null;
+  const r = d?.responsables || null;
 
   document.getElementById("info-zona").textContent            = parcela.zonas?.nombre ? "Zona " + parcela.zonas.nombre : '-';
   document.getElementById("info-difunto").textContent         = d ? d.nombres + ' ' + d.apellido : "Sin asignar";
