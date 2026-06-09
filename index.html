@@ -411,7 +411,62 @@
               </form>
             </div>
           </div>
+<!-- MODAL: Ver detalle de difunto -->
+<div id="modal-ver-difunto" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-ver-titulo" onclick="cerrarModalVer(event)">
+  <div class="modal-box modal-ver-box">
+    <div class="modal-header">
+      <h3 id="modal-ver-titulo">Detalle del difunto</h3>
+      <button class="btn-close" onclick="cerrarModalVerBtn()" aria-label="Cerrar modal">
+        <i data-lucide="x" aria-hidden="true"></i>
+      </button>
+    </div>
+    <div class="modal-ver-body">
 
+      <div class="modal-ver-avatar">
+        <i data-lucide="user-round" aria-hidden="true"></i>
+      </div>
+
+      <h2 id="ver-nombre-completo" class="modal-ver-nombre"></h2>
+
+      <div class="modal-ver-grid">
+        <div class="modal-ver-item">
+          <span class="modal-ver-label">CI</span>
+          <span id="ver-ci" class="modal-ver-value"></span>
+        </div>
+        <div class="modal-ver-item">
+          <span class="modal-ver-label">Fecha de nacimiento</span>
+          <span id="ver-nacimiento" class="modal-ver-value"></span>
+        </div>
+        <div class="modal-ver-item">
+          <span class="modal-ver-label">Fecha de defunción</span>
+          <span id="ver-defuncion" class="modal-ver-value"></span>
+        </div>
+        <div class="modal-ver-item">
+          <span class="modal-ver-label">Parcela</span>
+          <span id="ver-parcela" class="modal-ver-value"></span>
+        </div>
+      </div>
+
+      <div class="modal-ver-responsable">
+        <div class="modal-ver-responsable-header">
+          <i data-lucide="user-check" aria-hidden="true"></i>
+          <span>Responsable</span>
+        </div>
+        <div class="modal-ver-grid">
+          <div class="modal-ver-item">
+            <span class="modal-ver-label">Nombre</span>
+            <span id="ver-resp-nombre" class="modal-ver-value"></span>
+          </div>
+          <div class="modal-ver-item">
+            <span class="modal-ver-label">Teléfono</span>
+            <span id="ver-resp-tel" class="modal-ver-value"></span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
         </section><!-- /sec-difuntos -->
 
 

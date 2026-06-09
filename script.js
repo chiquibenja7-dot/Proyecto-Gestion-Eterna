@@ -736,9 +736,42 @@ function mostrarCargando(tbodyId, columnas) {
 }
 
 async function verDifunto(id) {
-  alert('Próximamente: detalle del difunto ID ' + id);
+  const { data, error } = await supabaseClient
+    .from('difuntos')
+    .select('nombres, apellido, ci, fecha_nacimiento, fecha_defuncion, parcelas(codigo), responsables(nombre, apellido, telefono)')
+    .eq('id', id)
+    .single();
+
+  if (error || !data) { console.error("verDifunto:", error?.message); return; }
+
+  const r = data.responsables || null;
+
+  document.getElementById("ver-nombre-completo").textContent = data.nombres + ' ' + data.apellido;
+  document.getElementById("ver-ci").textContent          = data.ci || '—';
+  document.getElementById("ver-nacimiento").textContent  = formatearFecha(data.fecha_nacimiento);
+  document.getElementById("ver-defuncion").textContent   = formatearFecha(data.fecha_defuncion);
+  document.getElementById("ver-parcela").textContent     = data.parcelas?.codigo || '—';
+  document.getElementById("ver-resp-nombre").textContent = r ? r.nombre + ' ' + r.apellido : '—';
+  document.getElementById("ver-resp-tel").textContent    = r?.telefono || '—';
+
+  const modal = document.getElementById("modal-ver-difunto");
+  modal.classList.remove("hidden");
+  modal.classList.add("modal-visible");
+  lucide.createIcons();
 }
 
+function cerrarModalVerBtn() {
+  const modal = document.getElementById("modal-ver-difunto");
+  modal.classList.add("hidden");
+  modal.classList.remove("modal-visible");
+}
+
+// Cierra al hacer clic fuera del contenido
+function cerrarModalVer(event) {
+  if (event.target === document.getElementById("modal-ver-difunto")) {
+    cerrarModalVerBtn();
+  }
+}
 
 /* ================================================================
    INICIALIZACIÓN
