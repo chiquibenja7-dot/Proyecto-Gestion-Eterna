@@ -63,16 +63,84 @@ async function cerrarSesion() {
   lucide.createIcons();
 }
 
-async function verificarSesionExistente() {
-  const { data: { session } } = await supabaseClient.auth.getSession();
-  if (session) {
-    document.getElementById("login-screen").classList.add("hidden");
-    document.getElementById("dashboard").classList.remove("hidden");
-    document.getElementById("topbar-username").textContent = session.user.email;
-    await cargarInicio();
-    await generarMapa();
+/* ================================================================
+   MANEJO DE SESIÓN CON EXPIRACIÓN POR INACTIVIDAD
+   - Tiempo máximo de inactividad: 30 minutos
+   - Aviso 1 minuto antes de cerrar
+   - Se resetea con cualquier interacción del usuario
+================================================================ */
+
+const TIEMPO_INACTIVIDAD_MS = 29 * 60 * 1000; // 29 min → muestra aviso
+const TIEMPO_CIERRE_MS      = 30 * 60 * 1000; // 30 min → cierra sesión
+
+let temporizadorAviso  = null;
+let temporizadorCierre = null;
+
+function iniciarTemporizadores() {
+  clearTimeout(temporizadorAviso);
+  clearTimeout(temporizadorCierre);
+
+  // A los 29 minutos → mostrar aviso
+  temporizadorAviso = setTimeout(() => {
+    document.getElementById("toast-sesion").classList.remove("hidden");
     lucide.createIcons();
+  }, TIEMPO_INACTIVIDAD_MS);
+
+  // A los 30 minutos → cerrar sesión
+  temporizadorCierre = setTimeout(async () => {
+    document.getElementById("toast-sesion").classList.add("hidden");
+    await cerrarSesion();
+  }, TIEMPO_CIERRE_MS);
+}
+
+function detenerTemporizadores() {
+  clearTimeout(temporizadorAviso);
+  clearTimeout(temporizadorCierre);
+}
+
+// Cualquier interacción del usuario resetea los temporizadores
+function resetearInactividad() {
+  const dashboard = document.getElementById("dashboard");
+  if (!dashboard.classList.contains("hidden")) {
+    iniciarTemporizadores();
+    document.getElementById("toast-sesion").classList.add("hidden");
   }
+}
+
+// Escuchar interacciones del usuario
+['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(evento => {
+  document.addEventListener(evento, resetearInactividad, { passive: true });
+});
+
+// El usuario hace clic en "Continuar" en el toast
+async function renovarSesion() {
+  document.getElementById("toast-sesion").classList.add("hidden");
+  iniciarTemporizadores();
+}
+
+function verificarSesionExistente() {
+  supabaseClient.auth.onAuthStateChange(async (event, session) => {
+
+    if (event === 'SIGNED_OUT' || !session) {
+      detenerTemporizadores();
+      document.getElementById("toast-sesion").classList.add("hidden");
+      document.getElementById("dashboard").classList.add("hidden");
+      document.getElementById("login-screen").classList.remove("hidden");
+      lucide.createIcons();
+      return;
+    }
+
+    if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'INITIAL_SESSION') {
+      document.getElementById("login-screen").classList.add("hidden");
+      document.getElementById("dashboard").classList.remove("hidden");
+      document.getElementById("topbar-username").textContent = session.user.email;
+      iniciarTemporizadores(); // arrancar el contador al entrar
+      await cargarInicio();
+      await generarMapa();
+      lucide.createIcons();
+    }
+
+  });
 }
 
 
@@ -219,9 +287,48 @@ async function cargarDifuntos() {
    4. Libera la parcela → estado = 'disponible'
    5. Registra movimiento de baja
 ================================================================ */
+/* ================================================================
+   MODAL DE CONFIRMACIÓN REUTILIZABLE
+   Devuelve una Promise<boolean> — true si el usuario confirma.
+   Uso: const ok = await confirmarAccion("¿Eliminar este difunto?");
+================================================================ */
 
+function confirmarAccion(mensaje, textoBoton = "Eliminar") {
+  return new Promise((resolve) => {
+    const modal     = document.getElementById("modal-confirmar");
+    const btnAceptar = document.getElementById("btn-confirmar-aceptar");
+
+    document.getElementById("modal-confirmar-mensaje").textContent = mensaje;
+    btnAceptar.textContent = textoBoton;
+
+    modal.classList.remove("hidden");
+    modal.classList.add("modal-visible");
+    lucide.createIcons();
+
+    // Guardamos el resolve para que los botones lo puedan usar
+    window._resolverConfirmacion = resolve;
+  });
+}
+
+function cancelarConfirmacion() {
+  document.getElementById("modal-confirmar").classList.add("hidden");
+  document.getElementById("modal-confirmar").classList.remove("modal-visible");
+  if (window._resolverConfirmacion) window._resolverConfirmacion(false);
+}
+
+function cerrarModalConfirmar(event) {
+  if (event.target === document.getElementById("modal-confirmar")) {
+    cancelarConfirmacion();
+  }
+}
+
+document.getElementById("btn-confirmar-aceptar")?.addEventListener("click", () => {
+  document.getElementById("modal-confirmar").classList.add("hidden");
+  document.getElementById("modal-confirmar").classList.remove("modal-visible");
+  if (window._resolverConfirmacion) window._resolverConfirmacion(true);
+});
 async function eliminarDifunto(difuntoId, parcelaId) {
-  const confirmado = confirm("¿Estás seguro de que querés eliminar este difunto y liberar su parcela? Esta acción no se puede deshacer.");
+  const confirmado = await confirmarAccion("¿Estás seguro de que querés eliminar este difunto? Su parcela quedará disponible y esta acción no se puede deshacer.");
   if (!confirmado) return;
 
   // Paso 1: eliminar responsable manualmente por si no hay CASCADE configurado
