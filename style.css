@@ -318,14 +318,20 @@ input {
   min-height: 100vh;
 }
 
-/* La sección de contenido ocupa el espacio restante */
 .main-content {
   flex: 1;
-  /* Dejamos espacio igual al ancho del sidebar */
   margin-left: var(--sidebar-width);
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+
+  /* El contenido también se mueve al colapsar el sidebar */
+  transition: margin-left 0.28s ease;
+}
+
+/* Cuando el sidebar está colapsado, el contenido ocupa todo el ancho */
+.main-content.expanded {
+  margin-left: 0;
 }
 
 
@@ -344,6 +350,7 @@ input {
   flex-direction: column;
   padding: 0;
   z-index: 100;
+  transition: left 0.28s ease;
 }
 
 /* Logo/marca en la parte superior del sidebar */
@@ -1217,4 +1224,7 @@ input {
 .btn-peligro {
   background: #dc2626;
   color: white;
+}
+.sidebar.collapsed {
+  left: calc(-1 * var(--sidebar-width));
 }

@@ -185,7 +185,8 @@ async function mostrarSeccion(nombreSeccion, itemClicado) {
 }
 
 function toggleSidebar() {
-  document.getElementById("sidebar").classList.toggle("open");
+  document.getElementById("sidebar").classList.toggle("collapsed");
+  document.getElementById("main-content").classList.toggle("expanded");
 }
 
 
