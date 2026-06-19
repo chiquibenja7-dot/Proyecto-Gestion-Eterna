@@ -5,7 +5,14 @@
 const SUPABASE_URL = "https://edpdfxbszdhjrzxfontl.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVkcGRmeGJzemRoanJ6eGZvbnRsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1NzQ3ODgsImV4cCI6MjA5NTE1MDc4OH0.MYiYXyJ5zSnx7DiN22ycU7h_0NEQz5rl_17REKVn5JQ";
 
-const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: {
+    storage: sessionStorage,       // se borra al cerrar pestaña/navegador
+    persistSession: true,          // dentro de la pestaña sí persiste
+    autoRefreshToken: true,        // renueva el token mientras la pestaña esté abierta
+    detectSessionInUrl: false      // no leer tokens desde la URL
+  }
+});
 
 
 /* ================================================================
@@ -885,6 +892,9 @@ function cerrarModalVer(event) {
 ================================================================ */
 
 document.addEventListener("DOMContentLoaded", async function () {
-  console.log("Sistema de Cementerio - conectando con Supabase...");
-  await verificarSesionExistente();
+  // Cerramos sesión en cada carga de página intencionalmente.
+  // Así cualquier recarga, cierre de pestaña o navegador
+  // obliga al usuario a volver a autenticarse.
+  await supabaseClient.auth.signOut();
+  lucide.createIcons();
 });
