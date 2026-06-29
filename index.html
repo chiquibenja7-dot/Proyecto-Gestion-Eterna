@@ -3,720 +3,1465 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Sistema de Administración de Cementerio</title>
+  <title>Gestión Eterna — Sistema de Administración de Cementerios</title>
   <link rel="icon" href="data:,">
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Serif+Display&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
   <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    /* ================================================================
+       VARIABLES Y RESET
+    ================================================================ */
+    :root {
+      --c-dark:        #0f1624;
+      --c-sidebar:     #1a2236;
+      --c-sidebar-mid: #243047;
+      --c-accent:      #3b82f6;
+      --c-accent-dark: #2563eb;
+      --c-accent-glow: rgba(59,130,246,0.18);
+      --c-bg:          #f0f2f5;
+      --c-white:       #ffffff;
+      --c-text:        #1e293b;
+      --c-muted:       #64748b;
+      --c-border:      #e2e8f0;
+      --c-available:   #22c55e;
+      --c-occupied:    #ef4444;
+
+      --shadow-sm:  0 1px 3px rgba(0,0,0,0.08);
+      --shadow-md:  0 4px 16px rgba(0,0,0,0.10);
+      --shadow-lg:  0 12px 40px rgba(0,0,0,0.18);
+
+      --radius-sm:  6px;
+      --radius-md:  12px;
+      --radius-lg:  20px;
+
+      --font-body:    'DM Sans', sans-serif;
+      --font-display: 'DM Serif Display', serif;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--c-bg);
+      color: var(--c-text);
+      font-size: 15px;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    a { text-decoration: none; color: inherit; }
+    ul { list-style: none; }
+    button { cursor: pointer; font-family: var(--font-body); }
+
+
+    /* ================================================================
+       NAVBAR
+    ================================================================ */
+    .navbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      padding: 0 5%;
+      height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      transition: background 0.3s, box-shadow 0.3s, backdrop-filter 0.3s;
+    }
+
+    .navbar.scrolled {
+      background: rgba(15, 22, 36, 0.92);
+      backdrop-filter: blur(12px);
+      box-shadow: 0 1px 0 rgba(255,255,255,0.06);
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .nav-logo-icon {
+      width: 38px;
+      height: 38px;
+      background: var(--c-accent);
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-logo-icon svg {
+      width: 20px;
+      height: 20px;
+      color: white;
+    }
+
+    .nav-brand-name {
+      font-family: var(--font-display);
+      font-size: 1.25rem;
+      color: white;
+      letter-spacing: 0.01em;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-nav-ghost {
+      padding: 8px 18px;
+      color: rgba(255,255,255,0.75);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      background: none;
+      transition: color 0.2s, border-color 0.2s, background 0.2s;
+    }
+
+    .btn-nav-ghost:hover {
+      color: white;
+      border-color: rgba(255,255,255,0.35);
+      background: rgba(255,255,255,0.06);
+    }
+
+    .btn-nav-primary {
+      padding: 8px 20px;
+      background: var(--c-accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 0.875rem;
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      transition: background 0.2s, transform 0.15s;
+    }
+
+    .btn-nav-primary:hover {
+      background: var(--c-accent-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-nav-primary svg {
+      width: 15px;
+      height: 15px;
+    }
+
+
+    /* ================================================================
+       HERO
+    ================================================================ */
+    .hero {
+      min-height: 100vh;
+      background: var(--c-dark);
+      position: relative;
+      display: flex;
+      align-items: center;
+      padding: 100px 5% 80px;
+      overflow: hidden;
+    }
+
+    /* Fondo con gradiente sutil */
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 70% 60% at 60% 50%, rgba(59,130,246,0.07) 0%, transparent 70%),
+        radial-gradient(ellipse 40% 40% at 20% 80%, rgba(59,130,246,0.04) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    /* Línea diagonal que separa visualmente el hero del resto */
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      right: 0;
+      height: 80px;
+      background: var(--c-bg);
+      clip-path: polygon(0 100%, 100% 20%, 100% 100%);
+    }
+
+    .hero-inner {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+      max-width: 1160px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+   
+
+    .hero-eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(59,130,246,0.12);
+      border: 1px solid rgba(59,130,246,0.25);
+      color: #93c5fd;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 999px;
+      margin-bottom: 28px;
+    }
+
+    .hero-eyebrow svg {
+      width: 13px;
+      height: 13px;
+    }
+
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 4.5vw, 3.4rem);
+      color: white;
+      line-height: 1.15;
+      letter-spacing: -0.01em;
+      margin-bottom: 20px;
+    }
+
+    .hero-title em {
+      font-style: italic;
+      color: #93c5fd;
+    }
+
+    .hero-subtitle {
+      font-size: 1.05rem;
+      color: #94a3b8;
+      line-height: 1.7;
+      max-width: 480px;
+      margin-bottom: 40px;
+    }
+
+    .hero-actions {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .btn-hero-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 14px 28px;
+      background: var(--c-accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      font-weight: 600;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 20px rgba(59,130,246,0.35);
+    }
+
+    .btn-hero-primary:hover {
+      background: var(--c-accent-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(59,130,246,0.4);
+    }
+
+    .btn-hero-primary svg { width: 18px; height: 18px; }
+
+    .btn-hero-ghost {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 14px 24px;
+      background: none;
+      color: rgba(255,255,255,0.7);
+      border: 1.5px solid rgba(255,255,255,0.18);
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      font-weight: 500;
+      transition: color 0.2s, border-color 0.2s, background 0.2s;
+    }
+
+    .btn-hero-ghost:hover {
+      color: white;
+      border-color: rgba(255,255,255,0.38);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .btn-hero-ghost svg { width: 16px; height: 16px; }
+
+    /* Elemento firma: el mapa de parcelas animado */
+    .hero-visual {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .parcelas-visual {
+      background: var(--c-sidebar);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      box-shadow: var(--shadow-lg), 0 0 60px rgba(59,130,246,0.08);
+      width: 100%;
+      max-width: 380px;
+    }
+
+    .parcelas-visual-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
+
+    .parcelas-visual-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #64748b;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .parcelas-visual-badge {
+      font-size: 0.72rem;
+      padding: 3px 10px;
+      background: rgba(34,197,94,0.12);
+      color: #4ade80;
+      border-radius: 999px;
+      border: 1px solid rgba(34,197,94,0.2);
+      font-weight: 600;
+    }
+
+    /* Grilla de parcelas decorativa */
+    .vis-zone {
+      margin-bottom: 16px;
+    }
+
+    .vis-zone-label {
+      font-size: 0.7rem;
+      color: #475569;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+
+    .vis-grid {
+      display: grid;
+      grid-template-columns: repeat(10, 1fr);
+      gap: 4px;
+    }
+
+    .vis-cell {
+      aspect-ratio: 1;
+      border-radius: 3px;
+      transition: transform 0.15s;
+    }
+
+    .vis-cell.occ {
+      background: var(--c-occupied);
+      opacity: 0.85;
+    }
+
+    .vis-cell.avail {
+      background: var(--c-available);
+      opacity: 0.85;
+    }
+
+    .vis-cell.pulse {
+      animation: cellPulse 2.4s ease-in-out infinite;
+    }
+
+    @keyframes cellPulse {
+      0%, 100% { opacity: 0.85; transform: scale(1); }
+      50%       { opacity: 1;    transform: scale(1.08); }
+    }
+
+    .vis-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .vis-stat {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: var(--radius-sm);
+      padding: 10px 12px;
+    }
+
+    .vis-stat-number {
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: white;
+      line-height: 1;
+    }
+
+    .vis-stat-label {
+      font-size: 0.72rem;
+      color: #64748b;
+      margin-top: 3px;
+    }
+
+    .vis-stat-number.green { color: var(--c-available); }
+    .vis-stat-number.red   { color: var(--c-occupied); }
+
+
+    /* ================================================================
+       SECCIÓN: CARACTERÍSTICAS
+    ================================================================ */
+    .section-features {
+      padding: 100px 5%;
+      background: var(--c-bg);
+    }
+
+    .section-label {
+      text-align: center;
+      display: inline-block;
+      width: 100%;
+      margin-bottom: 12px;
+    }
+
+    .label-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      background: rgba(59,130,246,0.08);
+      color: var(--c-accent);
+      border: 1px solid rgba(59,130,246,0.18);
+      font-size: 0.76rem;
+      font-weight: 600;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      padding: 5px 14px;
+      border-radius: 999px;
+    }
+
+    .label-pill svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 3vw, 2.6rem);
+      color: var(--c-text);
+      text-align: center;
+      margin-bottom: 12px;
+      line-height: 1.2;
+    }
+
+    .section-subtitle {
+      text-align: center;
+      color: var(--c-muted);
+      max-width: 560px;
+      margin: 0 auto 56px;
+      font-size: 0.975rem;
+      line-height: 1.7;
+    }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .feature-card {
+      background: var(--c-white);
+      border: 1px solid var(--c-border);
+      border-radius: var(--radius-md);
+      padding: 28px 26px;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.22s, box-shadow 0.22s, border-color 0.22s;
+      opacity: 0;
+      transform: translateY(24px);
+    }
+
+    .feature-card.visible {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.5s ease, transform 0.5s ease,
+                  box-shadow 0.22s, border-color 0.22s;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+      border-color: rgba(59,130,246,0.22);
+    }
+
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 18px;
+    }
+
+    .feature-icon svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .fi-blue   { background: #dbeafe; color: #2563eb; }
+    .fi-green  { background: #dcfce7; color: #15803d; }
+    .fi-purple { background: #ede9fe; color: #7c3aed; }
+    .fi-amber  { background: #fef3c7; color: #d97706; }
+    .fi-teal   { background: #ccfbf1; color: #0d9488; }
+    .fi-slate  { background: #f1f5f9; color: #475569; }
+
+    .feature-title {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--c-text);
+    }
+
+    .feature-desc {
+      font-size: 0.875rem;
+      color: var(--c-muted);
+      line-height: 1.65;
+    }
+
+
+    /* ================================================================
+       SECCIÓN: POR QUÉ GESTIÓN ETERNA
+    ================================================================ */
+    .section-why {
+      padding: 90px 5%;
+      background: var(--c-sidebar);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Decoración de fondo */
+    .section-why::before {
+      content: '';
+      position: absolute;
+      top: -80px;
+      right: -80px;
+      width: 360px;
+      height: 360px;
+      background: radial-gradient(circle, rgba(59,130,246,0.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .why-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+    }
+
+    .why-content .label-pill {
+      background: rgba(59,130,246,0.15);
+      border-color: rgba(59,130,246,0.25);
+      color: #93c5fd;
+      margin-bottom: 20px;
+    }
+
+    .why-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 3vw, 2.5rem);
+      color: white;
+      line-height: 1.2;
+      margin-bottom: 16px;
+    }
+
+    .why-title em {
+      font-style: italic;
+      color: #93c5fd;
+    }
+
+    .why-desc {
+      color: #94a3b8;
+      font-size: 0.95rem;
+      line-height: 1.75;
+      margin-bottom: 36px;
+    }
+
+    .why-benefits {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .why-benefit {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    .why-benefit-icon {
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: rgba(59,130,246,0.15);
+      border: 1px solid rgba(59,130,246,0.22);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .why-benefit-icon svg {
+      width: 16px;
+      height: 16px;
+      color: #93c5fd;
+    }
+
+    .why-benefit-text strong {
+      display: block;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: white;
+      margin-bottom: 2px;
+    }
+
+    .why-benefit-text span {
+      font-size: 0.835rem;
+      color: #64748b;
+    }
+
+    /* Panel de métricas del lado derecho */
+    .why-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    .metric-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: var(--radius-md);
+      padding: 24px 20px;
+      text-align: center;
+      transition: background 0.2s, border-color 0.2s;
+      opacity: 0;
+      transform: scale(0.95);
+    }
+
+    .metric-card.visible {
+      opacity: 1;
+      transform: scale(1);
+      transition: opacity 0.5s ease, transform 0.5s ease,
+                  background 0.2s, border-color 0.2s;
+    }
+
+    .metric-card:hover {
+      background: rgba(255,255,255,0.07);
+      border-color: rgba(59,130,246,0.25);
+    }
+
+    .metric-number {
+      font-family: var(--font-display);
+      font-size: 2.4rem;
+      color: #93c5fd;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .metric-label {
+      font-size: 0.82rem;
+      color: #64748b;
+      line-height: 1.4;
+    }
+
+    .metric-card.span2 {
+      grid-column: span 2;
+    }
+
+
+    /* ================================================================
+       SECCIÓN: SEGURIDAD
+    ================================================================ */
+    .section-security {
+      padding: 90px 5%;
+      background: var(--c-bg);
+    }
+
+    .security-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .security-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+      margin-top: 56px;
+    }
+
+    .security-card {
+      background: var(--c-white);
+      border: 1px solid var(--c-border);
+      border-radius: var(--radius-md);
+      padding: 30px 26px;
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+      box-shadow: var(--shadow-sm);
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    .security-card.visible {
+      opacity: 1;
+      transform: translateY(0);
+      transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+
+    .security-card-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      background: #dbeafe;
+      color: #2563eb;
+    }
+
+    .security-card-icon svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .security-card-title {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+
+    .security-card-desc {
+      font-size: 0.845rem;
+      color: var(--c-muted);
+      line-height: 1.65;
+    }
+
+    /* Banner de seguridad */
+    .security-banner {
+      background: var(--c-sidebar);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: var(--radius-lg);
+      padding: 40px 48px;
+      margin-top: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 32px;
+    }
+
+    .security-banner-text h3 {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      color: white;
+      margin-bottom: 8px;
+    }
+
+    .security-banner-text p {
+      color: #64748b;
+      font-size: 0.9rem;
+      max-width: 480px;
+      line-height: 1.6;
+    }
+
+    .security-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(34,197,94,0.1);
+      border: 1px solid rgba(34,197,94,0.2);
+      color: #4ade80;
+      padding: 12px 20px;
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      font-size: 0.875rem;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .security-badge svg {
+      width: 18px;
+      height: 18px;
+    }
+
+
+    /* ================================================================
+       CTA FINAL
+    ================================================================ */
+    .section-cta {
+      padding: 100px 5%;
+      background: var(--c-dark);
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .section-cta::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 60% 70% at 50% 60%, rgba(59,130,246,0.10) 0%, transparent 70%);
+      pointer-events: none;
+    }
+
+    .cta-inner {
+      position: relative;
+      z-index: 2;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .cta-title {
+      font-family: var(--font-display);
+      font-size: clamp(2rem, 3.5vw, 2.8rem);
+      color: white;
+      margin-bottom: 16px;
+      line-height: 1.2;
+    }
+
+    .cta-title em {
+      font-style: italic;
+      color: #93c5fd;
+    }
+
+    .cta-desc {
+      color: #64748b;
+      font-size: 1rem;
+      line-height: 1.7;
+      margin-bottom: 40px;
+    }
+
+    .cta-actions {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .btn-cta-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 15px 32px;
+      background: var(--c-accent);
+      color: white;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      font-weight: 600;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      box-shadow: 0 4px 24px rgba(59,130,246,0.35);
+    }
+
+    .btn-cta-primary:hover {
+      background: var(--c-accent-dark);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(59,130,246,0.45);
+    }
+
+    .btn-cta-primary svg { width: 18px; height: 18px; }
+
+
+    /* ================================================================
+       FOOTER
+    ================================================================ */
+    .footer {
+      background: var(--c-dark);
+      border-top: 1px solid rgba(255,255,255,0.06);
+      padding: 40px 5%;
+    }
+
+    .footer-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .footer-logo {
+      width: 32px;
+      height: 32px;
+      background: var(--c-accent);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .footer-logo svg {
+      width: 17px;
+      height: 17px;
+      color: white;
+    }
+
+    .footer-name {
+      font-family: var(--font-display);
+      color: white;
+      font-size: 1rem;
+    }
+
+    .footer-copy {
+      font-size: 0.82rem;
+      color: #475569;
+      text-align: center;
+    }
+
+    .footer-tagline {
+      font-size: 0.82rem;
+      color: #334155;
+      text-align: right;
+      font-style: italic;
+    }
+
+
+    /* ================================================================
+       UTILIDADES Y ANIMACIONES
+    ================================================================ */
+    .hidden { display: none !important; }
+
+    /* Reveal on scroll — estado base */
+    .reveal {
+      opacity: 0;
+      transform: translateY(22px);
+      transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Delay utilities */
+    .delay-1 { transition-delay: 0.1s; }
+    .delay-2 { transition-delay: 0.2s; }
+    .delay-3 { transition-delay: 0.3s; }
+    .delay-4 { transition-delay: 0.4s; }
+    .delay-5 { transition-delay: 0.5s; }
+
+
+    /* ================================================================
+       RESPONSIVE
+    ================================================================ */
+    @media (max-width: 900px) {
+      .hero-inner {
+        grid-template-columns: 1fr;
+        gap: 52px;
+        text-align: center;
+      }
+
+      .hero-subtitle { margin-left: auto; margin-right: auto; }
+      .hero-actions  { justify-content: center; }
+      .hero-visual   { align-items: center; }
+
+      .why-inner { grid-template-columns: 1fr; gap: 48px; }
+      .why-metrics { order: -1; }
+
+      .features-grid  { grid-template-columns: 1fr 1fr; }
+      .security-grid  { grid-template-columns: 1fr 1fr; }
+      .security-banner { flex-direction: column; align-items: flex-start; }
+    }
+
+    @media (max-width: 600px) {
+      .features-grid  { grid-template-columns: 1fr; }
+      .security-grid  { grid-template-columns: 1fr; }
+      .why-metrics    { grid-template-columns: 1fr 1fr; }
+      .metric-card.span2 { grid-column: span 2; }
+      .vis-grid { grid-template-columns: repeat(8, 1fr); }
+
+      .navbar { padding: 0 4%; }
+      .hero   { padding: 88px 4% 80px; }
+
+      .footer-inner { flex-direction: column; align-items: center; text-align: center; }
+      .footer-tagline { text-align: center; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
 </head>
 <body>
 
   <!-- ============================================================
-       SECCIÓN 1: PANTALLA DE LOGIN
+       NAVBAR
   ============================================================ -->
-  <div id="login-screen" class="login-screen">
-
-    <div class="login-panel-left">
-      <div class="login-brand">
-        <div class="login-logo-icon">
-          <i data-lucide="map-pin" aria-hidden="true"></i>
-        </div>
-        <h1 class="login-title-big">Gestión Eterna</h1>
-        <p class="login-subtitle">Sistema de Administración Interna</p>
+  <nav class="navbar" id="navbar" aria-label="Navegación principal">
+    <div class="nav-brand">
+      <div class="nav-logo-icon">
+        <i data-lucide="map-pin" aria-hidden="true"></i>
       </div>
-      <div class="login-decoration">
-        <div class="deco-grid" aria-hidden="true">
-          <div class="deco-cell occupied"></div>
-          <div class="deco-cell available"></div>
-          <div class="deco-cell occupied"></div>
-          <div class="deco-cell available"></div>
-          <div class="deco-cell available"></div>
-          <div class="deco-cell occupied"></div>
-          <div class="deco-cell available"></div>
-          <div class="deco-cell occupied"></div>
-          <div class="deco-cell occupied"></div>
-        </div>
-        <p class="deco-label">Gestión de parcelas por zonas A · B · C · D</p>
-      </div>
+      <span class="nav-brand-name">Gestión Eterna</span>
     </div>
-
-    <div class="login-panel-right">
-      <div class="login-form-box">
-        <a href="home.html" class="btn-back-home">
-  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-    <line x1="19" y1="12" x2="5" y2="12"/>
-    <polyline points="12 19 5 12 12 5"/>
-  </svg>
-  Volver al inicio
-</a>
-        <h2 class="login-form-title">Iniciar sesión</h2>
-        <p class="login-form-desc">Ingresa tus credenciales de administrador</p>
-
-        <div class="form-group">
-          <label for="username">Usuario</label>
-          <div class="input-wrapper">
-            <i data-lucide="user" class="input-icon" aria-hidden="true"></i>
-            <input type="text" id="username" placeholder="admin" autocomplete="username" />
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label for="password">Contraseña</label>
-          <div class="input-wrapper">
-            <i data-lucide="lock" class="input-icon" aria-hidden="true"></i>
-            <input type="password" id="password" placeholder="••••••••" autocomplete="current-password" />
-          </div>
-        </div>
-
-        <p id="login-error" class="login-error hidden" role="alert">
-          Usuario o contraseña incorrectos. Por favor verificá tus datos.
-        </p>
-
-        <button class="btn-login" onclick="iniciarSesion()">
-          Iniciar sesión
-          <i data-lucide="arrow-right" aria-hidden="true"></i>
-        </button>
-
-        <!--
-          ADVERTENCIA DE SEGURIDAD:
-          Eliminar o comentar este bloque antes de desplegar en producción.
-          Las credenciales de demo no deben ser visibles en entornos reales.
-        -->
-        <!-- <p class="login-hint">💡 Demo: usuario <strong>admin</strong> / contraseña <strong>1234</strong></p> -->
-      </div>
+    <div class="nav-actions">
+      <a href="#caracteristicas" class="btn-nav-ghost">Características</a>
+      <a href="login.html" class="btn-nav-primary">
+        <i data-lucide="log-in" aria-hidden="true"></i>
+        Iniciar sesión
+      </a>
     </div>
-
-  </div><!-- /login-screen -->
+  </nav>
 
 
   <!-- ============================================================
-       SECCIÓN 2: DASHBOARD PRINCIPAL
+       HERO
   ============================================================ -->
-  <div id="dashboard" class="dashboard hidden">
+  <section class="hero" id="inicio" aria-labelledby="hero-title">
+    <div class="hero-inner">
 
-    <!-- SIDEBAR -->
-    <aside id="sidebar" class="sidebar" role="navigation" aria-label="Menú principal">
+      <div class="hero-content">
+        <div class="hero-eyebrow">
+          <i data-lucide="shield-check" aria-hidden="true"></i>
+          Sistema Administrativo Certificado
+        </div>
+        <h1 class="hero-title" id="hero-title">
+          Administración <em>digna</em> y precisa para cada registro
+        </h1>
+        <p class="hero-subtitle">
+          Gestión Eterna centraliza el control de parcelas, difuntos y responsables en una plataforma segura, ordenada y de acceso inmediato para el personal autorizado.
+        </p>
+        <div class="hero-actions">
+          <a href="login.html" class="btn-hero-primary">
+            <i data-lucide="log-in" aria-hidden="true"></i>
+            Iniciar sesión
+          </a>
+          <a href="#caracteristicas" class="btn-hero-ghost">
+            <i data-lucide="chevron-down" aria-hidden="true"></i>
+            Conocer más
+          </a>
+        </div>
+      </div>
 
-      <div class="sidebar-brand">
-        <div class="sidebar-logo">
+      <!-- Elemento firma: mapa de parcelas interactivo decorativo -->
+      <div class="hero-visual" role="img" aria-label="Visualización del mapa de parcelas del sistema">
+        <div class="parcelas-visual">
+          <div class="parcelas-visual-header">
+            <span class="parcelas-visual-title">Mapa de parcelas — Tiempo real</span>
+            <span class="parcelas-visual-badge">● En línea</span>
+          </div>
+
+          <div class="vis-zone">
+            <div class="vis-zone-label">Zona A</div>
+            <div class="vis-grid" id="vis-zona-a"></div>
+          </div>
+          <div class="vis-zone">
+            <div class="vis-zone-label">Zona B</div>
+            <div class="vis-grid" id="vis-zona-b"></div>
+          </div>
+          <div class="vis-zone">
+            <div class="vis-zone-label">Zona C</div>
+            <div class="vis-grid" id="vis-zona-c"></div>
+          </div>
+          <div class="vis-zone" style="margin-bottom:20px">
+            <div class="vis-zone-label">Zona D</div>
+            <div class="vis-grid" id="vis-zona-d"></div>
+          </div>
+
+          <div class="vis-stats">
+            <div class="vis-stat">
+              <div class="vis-stat-number green" id="vis-count-avail">—</div>
+              <div class="vis-stat-label">Disponibles</div>
+            </div>
+            <div class="vis-stat">
+              <div class="vis-stat-number red" id="vis-count-occ">—</div>
+              <div class="vis-stat-label">Ocupadas</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ============================================================
+       CARACTERÍSTICAS
+  ============================================================ -->
+  <section class="section-features" id="caracteristicas" aria-labelledby="features-title">
+    <div class="section-label">
+      <span class="label-pill">
+        <i data-lucide="layers" aria-hidden="true"></i>
+        Módulos del sistema
+      </span>
+    </div>
+    <h2 class="section-title" id="features-title">Todo lo que necesitás, en un solo lugar</h2>
+    <p class="section-subtitle">
+      Cada módulo fue diseñado para simplificar las tareas administrativas diarias del cementerio, reduciendo el margen de error y mejorando el tiempo de respuesta.
+    </p>
+
+    <div class="features-grid">
+
+      <div class="feature-card reveal delay-1">
+        <div class="feature-icon fi-blue">
+          <i data-lucide="grid-2x2" aria-hidden="true"></i>
+        </div>
+        <h3 class="feature-title">Gestión de Parcelas</h3>
+        <p class="feature-desc">Control visual e interactivo del estado de cada parcela en tiempo real. Zonas A, B, C y D con disponibilidad actualizada al instante.</p>
+      </div>
+
+      <div class="feature-card reveal delay-2">
+        <div class="feature-icon fi-green">
+          <i data-lucide="book-open" aria-hidden="true"></i>
+        </div>
+        <h3 class="feature-title">Registro de Difuntos</h3>
+        <p class="feature-desc">Alta, consulta y baja de registros con datos completos del fallecido: nombre, CI, fechas, parcela asignada y responsable vinculado.</p>
+      </div>
+
+      <div class="feature-card reveal delay-3">
+        <div class="feature-icon fi-purple">
+          <i data-lucide="users" aria-hidden="true"></i>
+        </div>
+        <h3 class="feature-title">Administración de Responsables</h3>
+        <p class="feature-desc">Vinculación directa entre cada difunto y su responsable: datos de contacto, parentesco y seguimiento centralizado en un solo registro.</p>
+      </div>
+
+      <div class="feature-card reveal delay-2">
+        <div class="feature-icon fi-amber">
+          <i data-lucide="activity" aria-hidden="true"></i>
+        </div>
+        <h3 class="feature-title">Historial de Movimientos</h3>
+        <p class="feature-desc">Trazabilidad completa de todos los ingresos, bajas y cambios del sistema. Cada acción queda registrada con fecha, tipo y parcela involucrada.</p>
+      </div>
+
+      <div class="feature-card reveal delay-3">
+        <div class="feature-icon fi-teal">
+          <i data-lucide="search" aria-hidden="true"></i>
+        </div>
+        <h3 class="feature-title">Búsqueda Rápida</h3>
+        <p class="feature-desc">Localizá difuntos y responsables en segundos por nombre, CI o número de parcela. Resultados instantáneos con búsqueda inteligente.</p>
+      </div>
+
+      <div class="feature-card reveal delay-4">
+        <div class="feature-icon fi-slate">
+          <i data-lucide="map" aria-hidden="true"></i>
+        </div>
+        <h3 class="feature-title">Mapa Interactivo</h3>
+        <p class="feature-desc">Visualización gráfica del cementerio con parcelas coloreadas por estado. Al hacer clic, accedés a la información completa de cada espacio.</p>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ============================================================
+       POR QUÉ GESTIÓN ETERNA
+  ============================================================ -->
+  <section class="section-why" id="porque" aria-labelledby="why-title">
+    <div class="why-inner">
+
+      <div class="why-content reveal">
+        <span class="label-pill" style="margin-bottom:20px; display:inline-flex">
+          <i data-lucide="star" aria-hidden="true"></i>
+          Por qué elegirnos
+        </span>
+        <h2 class="why-title" id="why-title">
+          Diseñado para quienes <em>gestionan</em> con responsabilidad
+        </h2>
+        <p class="why-desc">
+          La administración de un cementerio exige exactitud, discreción y acceso rápido a la información. Gestión Eterna fue construido con esa realidad en mente.
+        </p>
+
+        <div class="why-benefits">
+          <div class="why-benefit">
+            <div class="why-benefit-icon">
+              <i data-lucide="zap" aria-hidden="true"></i>
+            </div>
+            <div class="why-benefit-text">
+              <strong>Acceso inmediato a la información</strong>
+              <span>Sin búsquedas manuales en libros o planillas. Cada dato está a un clic de distancia.</span>
+            </div>
+          </div>
+          <div class="why-benefit">
+            <div class="why-benefit-icon">
+              <i data-lucide="check-circle-2" aria-hidden="true"></i>
+            </div>
+            <div class="why-benefit-text">
+              <strong>Menos errores administrativos</strong>
+              <span>El sistema valida la información antes de guardarla y evita duplicados o asignaciones incorrectas.</span>
+            </div>
+          </div>
+          <div class="why-benefit">
+            <div class="why-benefit-icon">
+              <i data-lucide="database" aria-hidden="true"></i>
+            </div>
+            <div class="why-benefit-text">
+              <strong>Centralización de datos</strong>
+              <span>Difuntos, parcelas, responsables y movimientos en una única plataforma coherente y actualizada.</span>
+            </div>
+          </div>
+          <div class="why-benefit">
+            <div class="why-benefit-icon">
+              <i data-lucide="monitor" aria-hidden="true"></i>
+            </div>
+            <div class="why-benefit-text">
+              <strong>Interfaz clara e intuitiva</strong>
+              <span>Navegación simple y visual diseñada para ser aprendida en minutos, sin capacitación técnica.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="why-metrics">
+        <div class="metric-card reveal delay-1">
+          <div class="metric-number">4</div>
+          <div class="metric-label">Zonas de parcelas administradas</div>
+        </div>
+        <div class="metric-card reveal delay-2">
+          <div class="metric-number">1</div>
+          <div class="metric-label">Panel unificado de control</div>
+        </div>
+        <div class="metric-card reveal delay-3">
+          <div class="metric-number">100%</div>
+          <div class="metric-label">Registros auditables con historial</div>
+        </div>
+        <div class="metric-card reveal delay-4">
+          <div class="metric-number">0</div>
+          <div class="metric-label">Papel necesario para operar</div>
+        </div>
+        <div class="metric-card span2 reveal delay-5">
+          <div class="metric-number" style="font-size:1.6rem">Tiempo real</div>
+          <div class="metric-label">Disponibilidad de parcelas siempre actualizada</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- ============================================================
+       SEGURIDAD
+  ============================================================ -->
+  <section class="section-security" id="seguridad" aria-labelledby="security-title">
+    <div class="security-inner">
+      <div class="section-label">
+        <span class="label-pill">
+          <i data-lucide="shield" aria-hidden="true"></i>
+          Protección de datos
+        </span>
+      </div>
+      <h2 class="section-title" id="security-title">Su información, segura y protegida</h2>
+      <p class="section-subtitle">
+        Cada registro está respaldado por infraestructura en la nube con autenticación de acceso, cifrado y control de permisos administrativos.
+      </p>
+
+      <div class="security-grid">
+        <div class="security-card reveal delay-1">
+          <div class="security-card-icon">
+            <i data-lucide="lock" aria-hidden="true"></i>
+          </div>
+          <div>
+            <h3 class="security-card-title">Autenticación segura</h3>
+            <p class="security-card-desc">Solo el personal autorizado puede acceder al sistema mediante credenciales verificadas. La sesión se cierra automáticamente por inactividad.</p>
+          </div>
+        </div>
+        <div class="security-card reveal delay-2">
+          <div class="security-card-icon">
+            <i data-lucide="cloud" aria-hidden="true"></i>
+          </div>
+          <div>
+            <h3 class="security-card-title">Almacenamiento en la nube</h3>
+            <p class="security-card-desc">Los datos se almacenan en Supabase, una plataforma de base de datos PostgreSQL con respaldo automático y alta disponibilidad.</p>
+          </div>
+        </div>
+        <div class="security-card reveal delay-3">
+          <div class="security-card-icon">
+            <i data-lucide="eye-off" aria-hidden="true"></i>
+          </div>
+          <div>
+            <h3 class="security-card-title">Control de acceso (RLS)</h3>
+            <p class="security-card-desc">Las políticas de seguridad a nivel de fila (Row Level Security) garantizan que cada usuario solo vea los datos que le corresponden.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="security-banner reveal">
+        <div class="security-banner-text">
+          <h3>Información confidencial bajo resguardo permanente</h3>
+          <p>El sistema fue diseñado respetando las buenas prácticas de seguridad informática, garantizando que los datos de los difuntos, responsables y parcelas estén disponibles únicamente para el administrador autorizado.</p>
+        </div>
+        <div class="security-badge">
+          <i data-lucide="shield-check" aria-hidden="true"></i>
+          Sistema protegido
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============================================================
+       CTA FINAL
+  ============================================================ -->
+  <section class="section-cta" aria-labelledby="cta-title">
+    <div class="cta-inner">
+      <h2 class="cta-title" id="cta-title">
+        Comenzá a gestionar <em>con orden</em>
+      </h2>
+      <p class="cta-desc">
+        Accedé al panel de administración con tus credenciales y tomá el control completo de las parcelas, registros y movimientos del cementerio.
+      </p>
+      <div class="cta-actions">
+        <a href="login.html" class="btn-cta-primary">
+          <i data-lucide="log-in" aria-hidden="true"></i>
+          Iniciar sesión en el sistema
+        </a>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ============================================================
+       FOOTER
+  ============================================================ -->
+  <footer class="footer" role="contentinfo">
+    <div class="footer-inner">
+      <div class="footer-brand">
+        <div class="footer-logo">
           <i data-lucide="map-pin" aria-hidden="true"></i>
         </div>
-        <div>
-          <span class="sidebar-title">CementerioAdmin</span>
-          <span class="sidebar-version">v1.0</span>
-        </div>
+        <span class="footer-name">Gestión Eterna</span>
       </div>
-
-      <nav class="sidebar-nav">
-        <ul>
-          <li>
-            <a href="#" class="nav-item active" onclick="mostrarSeccion('inicio', this)" aria-current="page">
-              <i data-lucide="layout-dashboard" aria-hidden="true"></i>
-              <span>Inicio</span>
-            </a>
-          </li>
-          <li>
-            <a href="#" class="nav-item" onclick="mostrarSeccion('difuntos', this)">
-              <i data-lucide="book-open" aria-hidden="true"></i>
-              <span>Difuntos</span>
-            </a>
-          </li>
-          <li>
-            <a href="#" class="nav-item" onclick="mostrarSeccion('responsables', this)">
-              <i data-lucide="users" aria-hidden="true"></i>
-              <span>Responsables</span>
-            </a>
-          </li>
-          <li>
-            <a href="#" class="nav-item" onclick="mostrarSeccion('parcelas', this)">
-              <i data-lucide="grid-2x2" aria-hidden="true"></i>
-              <span>Parcelas</span>
-            </a>
-          </li>
-          <li>
-            <a href="#" class="nav-item" onclick="mostrarSeccion('mapa', this)">
-              <i data-lucide="map" aria-hidden="true"></i>
-              <span>Mapa</span>
-            </a>
-          </li>
-          <li>
-            <a href="#" class="nav-item" onclick="mostrarSeccion('movimientos', this)">
-              <i data-lucide="activity" aria-hidden="true"></i>
-              <span>Movimientos</span>
-            </a>
-          </li>
-          <li>
-            <a href="#" class="nav-item" onclick="mostrarSeccion('buscar', this)">
-              <i data-lucide="search" aria-hidden="true"></i>
-              <span>Buscar</span>
-            </a>
-          </li>
-        </ul>
-      </nav>
-
-      <div class="sidebar-footer">
-        <button class="btn-logout" onclick="cerrarSesion()">
-          <i data-lucide="log-out" aria-hidden="true"></i>
-          <span>Cerrar sesión</span>
-        </button>
-      </div>
-
-    </aside><!-- /sidebar -->
-
-
-    <!-- CONTENIDO PRINCIPAL -->
-    <main class="main-content" id="main-content">
-
-      <header class="topbar">
-        <button class="topbar-menu-btn" onclick="toggleSidebar()" aria-label="Abrir o cerrar menú lateral">
-          <i data-lucide="menu" aria-hidden="true"></i>
-        </button>
-        <h2 id="page-title" class="topbar-title">Inicio</h2>
-        <div class="topbar-user">
-          <i data-lucide="user-circle" aria-hidden="true"></i>
-          <span id="topbar-username">admin</span>
-        </div>
-      </header>
-
-      <div class="content-area">
-
-        <!-- ========================
-             SECCIÓN: INICIO
-        ======================== -->
-        <section id="sec-inicio" class="section active">
-          <div class="section-header">
-            <h3>Panel de Control</h3>
-            <p>Resumen general del sistema</p>
-          </div>
-
-          <div class="stats-grid">
-            <div class="stat-card">
-              <div class="stat-icon green"><i data-lucide="grid-2x2" aria-hidden="true"></i></div>
-              <div class="stat-info">
-                <span class="stat-number" id="stat-total">—</span>
-                <span class="stat-label">Parcelas totales</span>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-icon red"><i data-lucide="x-circle" aria-hidden="true"></i></div>
-              <div class="stat-info">
-                <span class="stat-number" id="stat-ocupadas">—</span>
-                <span class="stat-label">Parcelas ocupadas</span>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-icon teal"><i data-lucide="check-circle" aria-hidden="true"></i></div>
-              <div class="stat-info">
-                <span class="stat-number" id="stat-disponibles">—</span>
-                <span class="stat-label">Parcelas disponibles</span>
-              </div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-icon blue"><i data-lucide="book-open" aria-hidden="true"></i></div>
-              <div class="stat-info">
-                <span class="stat-number" id="stat-difuntos">—</span>
-                <span class="stat-label">Difuntos registrados</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="table-card">
-            <div class="table-card-header">
-              <h4>Últimos registros</h4>
-            </div>
-            <table class="data-table" aria-label="Últimos registros de difuntos">
-              <thead>
-                <tr>
-                  <th scope="col">#</th>
-                  <th scope="col">Nombre del difunto</th>
-                  <th scope="col">Zona</th>
-                  <th scope="col">Parcela</th>
-                  <th scope="col">Fecha ingreso</th>
-                  <th scope="col">Estado</th>
-                </tr>
-              </thead>
-              <tbody id="tabla-inicio-body">
-                <!-- skeletonRows(6) insertado por JS -->
-              </tbody>
-            </table>
-          </div>
-
-        </section><!-- /sec-inicio -->
-
-
-        <!-- ========================
-             SECCIÓN: DIFUNTOS
-        ======================== -->
-        <section id="sec-difuntos" class="section">
-          <div class="section-header">
-            <h3>Registro de Difuntos</h3>
-            <p>Listado de personas registradas en el sistema</p>
-          </div>
-          <div class="table-card">
-            <div class="table-card-header">
-              <h4>Difuntos registrados</h4>
-              <button class="btn-primary" onclick="abrirModal()">
-                <i data-lucide="plus" aria-hidden="true"></i> Nuevo registro
-              </button>
-            </div>
-            <table class="data-table" aria-label="Listado completo de difuntos">
-              <thead>
-                <tr>
-                  <th scope="col">#</th>
-                  <th scope="col">Nombre completo</th>
-                  <th scope="col">CI</th>
-                  <th scope="col">Fecha nacimiento</th>
-                  <th scope="col">Fecha defunción</th>
-                  <th scope="col">Parcela</th>
-                  <th scope="col">Acciones</th>
-                </tr>
-              </thead>
-              <tbody id="tabla-difuntos-body">
-                <!-- skeletonRows(7) insertado por JS -->
-              </tbody>
-            </table>
-          </div>
-
-          <!-- MODAL: Registrar nuevo difunto -->
-          <!--
-            MEJORA: Los estilos inline fueron movidos a style.css
-            bajo las clases .modal-overlay y .modal-box
-          -->
-          <div
-            id="modal-difunto"
-            class="modal-overlay hidden"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="modal-difunto-titulo"
-          >
-            <div class="modal-box">
-              <div class="modal-header">
-                <h3 id="modal-difunto-titulo">Registrar nuevo difunto</h3>
-                <button class="btn-close" onclick="cerrarModal()" aria-label="Cerrar modal">
-                  <i data-lucide="x" aria-hidden="true"></i>
-                </button>
-              </div>
-              <form id="form-difunto" onsubmit="registrarDifunto(event)" novalidate>
-                <div class="form-group">
-                  <label for="f-nombre">Nombre *</label>
-                  <div class="input-wrapper">
-                    <input type="text" id="f-nombre" placeholder="Ej: María" required autocomplete="off" />
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="f-apellido">Apellido *</label>
-                  <div class="input-wrapper">
-                    <input type="text" id="f-apellido" placeholder="Ej: González Soto" required autocomplete="off" />
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="f-ci">Cédula de identidad</label>
-                  <div class="input-wrapper">
-                    <!--
-                      MEJORA: patrón de validación para CI paraguaya.
-                      Acepta formatos: 1234567 o 1.234.567
-                    -->
-                    <input
-                      type="text"
-                      id="f-ci"
-                      placeholder="Ej: 1.234.567"
-                      pattern="[\d.]{6,10}"
-                      title="Ingresá solo números, con o sin puntos. Ej: 1234567"
-                      autocomplete="off"
-                    />
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="f-nacimiento">Fecha de nacimiento</label>
-                  <div class="input-wrapper">
-                    <!-- max se setea dinámicamente en JS para no superar la fecha de defunción -->
-                    <input type="date" id="f-nacimiento" />
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="f-defuncion">Fecha de defunción *</label>
-                  <div class="input-wrapper">
-                    <input type="date" id="f-defuncion" required max="" />
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="f-causa">Causa de defunción</label>
-                  <div class="input-wrapper">
-                    <input type="text" id="f-causa" placeholder="Opcional" />
-                  </div>
-                </div>
-                <div class="form-group">
-                  <label for="f-parcela">Parcela disponible *</label>
-                  <select id="f-parcela" class="select-field" required>
-                    <option value="">Cargando parcelas...</option>
-                  </select>
-                </div>
-
-                <!-- Separador visual para la sección de responsable -->
-                <hr class="form-divider" />
-                <p class="form-section-label">
-                  <i data-lucide="user-check" aria-hidden="true"></i>
-                  Datos del responsable (opcional)
-                </p>
-
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="f-resp-nombre">Nombre</label>
-                    <div class="input-wrapper">
-                      <input type="text" id="f-resp-nombre" placeholder="Ej: Juan" autocomplete="off" />
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <label for="f-resp-apellido">Apellido</label>
-                    <div class="input-wrapper">
-                      <input type="text" id="f-resp-apellido" placeholder="Ej: González" autocomplete="off" />
-                    </div>
-                  </div>
-                </div>
-
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="f-resp-ci">CI del responsable</label>
-                    <div class="input-wrapper">
-                      <input type="text" id="f-resp-ci" placeholder="Ej: 2.345.678" pattern="[\d.]{6,10}" autocomplete="off" />
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <label for="f-resp-parentesco">Parentesco</label>
-                    <div class="input-wrapper">
-                      <input type="text" id="f-resp-parentesco" placeholder="Ej: Hijo/a, Cónyuge" autocomplete="off" />
-                    </div>
-                  </div>
-                </div>
-
-                <div class="form-row">
-                  <div class="form-group">
-                    <label for="f-resp-telefono">Teléfono</label>
-                    <div class="input-wrapper">
-                      <input type="tel" id="f-resp-telefono" placeholder="Ej: 0981 123 456" autocomplete="off" />
-                    </div>
-                  </div>
-                  <div class="form-group">
-                    <label for="f-resp-email">Email</label>
-                    <div class="input-wrapper">
-                      <input type="email" id="f-resp-email" placeholder="Ej: juan@mail.com" autocomplete="off" />
-                    </div>
-                  </div>
-                </div>
-
-                <div class="form-group">
-                  <label for="f-resp-direccion">Dirección</label>
-                  <div class="input-wrapper">
-                    <input type="text" id="f-resp-direccion" placeholder="Ej: Av. Mariscal López 123, Asunción" autocomplete="off" />
-                  </div>
-                </div>
-
-                <button type="submit" class="btn-login" style="margin-top:8px;">
-                  <i data-lucide="save" aria-hidden="true"></i> Guardar registro
-                </button>
-              </form>
-            </div>
-          </div>
-<!-- MODAL: Ver detalle de difunto -->
-<div id="modal-ver-difunto" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-ver-titulo" onclick="cerrarModalVer(event)">
-  <div class="modal-box modal-ver-box">
-    <div class="modal-header">
-      <h3 id="modal-ver-titulo">Detalle del difunto</h3>
-      <button class="btn-close" onclick="cerrarModalVerBtn()" aria-label="Cerrar modal">
-        <i data-lucide="x" aria-hidden="true"></i>
-      </button>
+      <p class="footer-copy">
+        © <span id="footer-year"></span> Gestión Eterna · Sistema de Administración de Cementerios
+      </p>
+      <p class="footer-tagline">
+        "Cada registro, un acto de respeto."
+      </p>
     </div>
-    <div class="modal-ver-body">
-
-      <div class="modal-ver-avatar">
-        <i data-lucide="user-round" aria-hidden="true"></i>
-      </div>
-
-      <h2 id="ver-nombre-completo" class="modal-ver-nombre"></h2>
-
-      <div class="modal-ver-grid">
-        <div class="modal-ver-item">
-          <span class="modal-ver-label">CI</span>
-          <span id="ver-ci" class="modal-ver-value"></span>
-        </div>
-        <div class="modal-ver-item">
-          <span class="modal-ver-label">Fecha de nacimiento</span>
-          <span id="ver-nacimiento" class="modal-ver-value"></span>
-        </div>
-        <div class="modal-ver-item">
-          <span class="modal-ver-label">Fecha de defunción</span>
-          <span id="ver-defuncion" class="modal-ver-value"></span>
-        </div>
-        <div class="modal-ver-item">
-          <span class="modal-ver-label">Parcela</span>
-          <span id="ver-parcela" class="modal-ver-value"></span>
-        </div>
-      </div>
-
-      <div class="modal-ver-responsable">
-        <div class="modal-ver-responsable-header">
-          <i data-lucide="user-check" aria-hidden="true"></i>
-          <span>Responsable</span>
-        </div>
-        <div class="modal-ver-grid">
-          <div class="modal-ver-item">
-            <span class="modal-ver-label">Nombre</span>
-            <span id="ver-resp-nombre" class="modal-ver-value"></span>
-          </div>
-          <div class="modal-ver-item">
-            <span class="modal-ver-label">Teléfono</span>
-            <span id="ver-resp-tel" class="modal-ver-value"></span>
-          </div>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</div>
-        </section><!-- /sec-difuntos -->
+  </footer>
 
 
-        <!-- ========================
-             SECCIÓN: RESPONSABLES
-        ======================== -->
-        <section id="sec-responsables" class="section">
-          <div class="section-header">
-            <h3>Responsables</h3>
-            <p>Personas a cargo del seguimiento de cada difunto</p>
-          </div>
-          <div class="table-card">
-            <div class="table-card-header">
-              <h4>Listado de responsables</h4>
-            </div>
-            <table class="data-table" aria-label="Listado de responsables">
-              <thead>
-                <tr>
-                  <th scope="col">#</th>
-                  <th scope="col">Nombre completo</th>
-                  <th scope="col">CI</th>
-                  <th scope="col">Parentesco</th>
-                  <th scope="col">Difunto a cargo</th>
-                  <th scope="col">Teléfono</th>
-                  <th scope="col">Email</th>
-                  <th scope="col">Dirección</th>
-                  <th scope="col">Registrado</th>
-                </tr>
-              </thead>
-              <tbody id="tabla-responsables-body">
-                <!-- skeletonRows(9) insertado por JS -->
-              </tbody>
-            </table>
-          </div>
-        </section><!-- /sec-responsables -->
+  <!-- ============================================================
+       JAVASCRIPT
+  ============================================================ -->
+  <script>
+    /* ── Lucide ── */
+    lucide.createIcons();
 
+    /* ── Año en el footer ── */
+    document.getElementById("footer-year").textContent = new Date().getFullYear();
 
-        <!-- ========================
-             SECCIÓN: PARCELAS
-        ======================== -->
-        <section id="sec-parcelas" class="section">
-          <div class="section-header">
-            <h3>Gestión de Parcelas</h3>
-            <p>Estado de todas las parcelas por zona</p>
-          </div>
-          <div class="table-card">
-            <div class="table-card-header">
-              <h4>Listado de parcelas</h4>
-            </div>
-            <table class="data-table" aria-label="Listado de parcelas por zona">
-              <thead>
-                <tr>
-                  <th scope="col">Parcela</th>
-                  <th scope="col">Zona</th>
-                  <th scope="col">Estado</th>
-                  <th scope="col">Difunto asignado</th>
-                </tr>
-              </thead>
-              <tbody id="tabla-parcelas-body">
-                <!-- skeletonRows(4) insertado por JS -->
-              </tbody>
-            </table>
-          </div>
-        </section><!-- /sec-parcelas -->
+    /* ── Navbar: transparente en hero, oscuro al bajar ── */
+    const navbar = document.getElementById("navbar");
+    window.addEventListener("scroll", () => {
+      navbar.classList.toggle("scrolled", window.scrollY > 40);
+    }, { passive: true });
 
+    /* ── Generador del mapa decorativo del hero ──
+       Genera una distribución aleatoria pero con proporción realista:
+       60-70% ocupado, el resto disponible.
+    ── */
+    function generarMapaDecorativo() {
+      const zonas = ["vis-zona-a", "vis-zona-b", "vis-zona-c", "vis-zona-d"];
+      const porZona = 10; // 10 parcelas por zona (filas visuales)
+      let totalOcc   = 0;
+      let totalAvail = 0;
 
-        <!-- ========================
-             SECCIÓN: MAPA INTERACTIVO
-        ======================== -->
-        <section id="sec-mapa" class="section">
-          <div class="section-header">
-            <h3>Mapa de Parcelas</h3>
-            <p>Visualización interactiva por zonas — hacé clic en una casilla para ver información</p>
-          </div>
+      zonas.forEach((zonaId, zonaIdx) => {
+        const contenedor = document.getElementById(zonaId);
+        if (!contenedor) return;
 
-          <div class="map-legend" role="list" aria-label="Referencias del mapa">
-            <div class="legend-item" role="listitem">
-              <div class="legend-color green" aria-hidden="true"></div>
-              <span>Disponible</span>
-            </div>
-            <div class="legend-item" role="listitem">
-              <div class="legend-color red" aria-hidden="true"></div>
-              <span>Ocupada</span>
-            </div>
-          </div>
+        contenedor.innerHTML = "";
+        for (let i = 0; i < porZona; i++) {
+          const cell = document.createElement("div");
+          // Probabilidad de estar ocupada varía por zona para que se vea natural
+          const ocupada = Math.random() < [0.72, 0.58, 0.45, 0.30][zonaIdx];
 
-          <div class="map-container">
-            <div class="zone-block">
-              <div class="zone-header">Zona A</div>
-              <div class="zone-grid" data-zone="A" id="zona-A" role="grid" aria-label="Parcelas zona A"></div>
-            </div>
-            <div class="zone-block">
-              <div class="zone-header">Zona B</div>
-              <div class="zone-grid" data-zone="B" id="zona-B" role="grid" aria-label="Parcelas zona B"></div>
-            </div>
-            <div class="zone-block">
-              <div class="zone-header">Zona C</div>
-              <div class="zone-grid" data-zone="C" id="zona-C" role="grid" aria-label="Parcelas zona C"></div>
-            </div>
-            <div class="zone-block">
-              <div class="zone-header">Zona D</div>
-              <div class="zone-grid" data-zone="D" id="zona-D" role="grid" aria-label="Parcelas zona D"></div>
-            </div>
-          </div>
+          cell.classList.add("vis-cell", ocupada ? "occ" : "avail");
 
-          <!-- Panel de información al hacer clic en una parcela -->
-          <div id="info-panel" class="info-panel hidden" role="region" aria-label="Información de parcela seleccionada" aria-live="polite">
-            <div class="info-panel-header">
-              <h4 id="info-titulo">Parcela: —</h4>
-              <button onclick="cerrarPanel()" class="btn-close" aria-label="Cerrar panel de información">
-                <i data-lucide="x" aria-hidden="true"></i>
-              </button>
-            </div>
-            <div class="info-panel-body">
-              <div class="info-row">
-                <span class="info-label">Estado:</span>
-                <span id="info-estado">—</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">Zona:</span>
-                <span id="info-zona">—</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">Difunto:</span>
-                <span id="info-difunto">—</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">Fecha ingreso:</span>
-                <span id="info-fecha">—</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">Responsable:</span>
-                <span id="info-responsable">—</span>
-              </div>
-              <div class="info-row">
-                <span class="info-label">Teléfono responsable:</span>
-                <span id="info-responsable-tel">—</span>
-              </div>
-            </div>
-          </div>
+          // Una celda al azar por zona "pulsa" para mostrar actividad
+          if (i === Math.floor(Math.random() * porZona)) {
+            cell.classList.add("pulse");
+            // Delays variados para que no pulsen al mismo tiempo
+            cell.style.animationDelay = (Math.random() * 1.8).toFixed(2) + "s";
+          }
 
-        </section><!-- /sec-mapa -->
+          if (ocupada) totalOcc++;
+          else          totalAvail++;
 
+          contenedor.appendChild(cell);
+        }
+      });
 
-        <!-- ========================
-             SECCIÓN: MOVIMIENTOS
-        ======================== -->
-        <section id="sec-movimientos" class="section">
-          <div class="section-header">
-            <h3>Movimientos</h3>
-            <p>Historial de ingresos y cambios de parcelas</p>
-          </div>
-          <div class="table-card">
-            <div class="table-card-header">
-              <h4>Historial de movimientos</h4>
-            </div>
-            <table class="data-table" aria-label="Historial de movimientos">
-              <thead>
-                <tr>
-                  <th scope="col">#</th>
-                  <th scope="col">Tipo</th>
-                  <th scope="col">Descripción</th>
-                  <th scope="col">Parcela</th>
-                  <th scope="col">Fecha</th>
-                </tr>
-              </thead>
-              <tbody id="tabla-mov-body">
-                <!-- skeletonRows(5) insertado por JS -->
-              </tbody>
-            </table>
-          </div>
-        </section><!-- /sec-movimientos -->
+      document.getElementById("vis-count-avail").textContent = totalAvail;
+      document.getElementById("vis-count-occ").textContent   = totalOcc;
+    }
 
+    generarMapaDecorativo();
 
-        <!-- ========================
-             SECCIÓN: BUSCAR
-        ======================== -->
-        <section id="sec-buscar" class="section">
-          <div class="section-header">
-            <h3>Buscar</h3>
-            <p>Buscá difuntos, responsables o parcelas por nombre, CI o número</p>
-          </div>
-          <div class="search-box-wrapper">
-            <div class="input-wrapper large">
-              <i data-lucide="search" class="input-icon" aria-hidden="true"></i>
-              <!--
-                MEJORA: oninput usa debounceBuscar (definido en script.js)
-                para no disparar la consulta en cada tecla.
-                El debounce espera 300ms de inactividad antes de ejecutar.
-              -->
-              <input
-                type="search"
-                id="search-input"
-                placeholder="Ej: María González, CI 1234567, parcela A-05..."
-                oninput="debounceBuscar(this.value)"
-                aria-label="Campo de búsqueda"
-                autocomplete="off"
-              />
-            </div>
-          </div>
-          <div id="search-results" class="search-results" aria-live="polite" aria-label="Resultados de búsqueda">
-            <p class="search-hint">Escribí algo para buscar...</p>
-          </div>
-        </section><!-- /sec-buscar -->
+    /* ── Scroll reveal con IntersectionObserver ──
+       Observa todos los elementos con .reveal o .feature-card / .metric-card / .security-card
+       y agrega .visible cuando entran en el viewport.
+    ── */
+    const revealEls = document.querySelectorAll(
+      ".reveal, .feature-card, .metric-card, .security-card"
+    );
 
-      </div><!-- /content-area -->
-    </main><!-- /main-content -->
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("visible");
+            // Una vez revelado, dejamos de observar para no revertirlo
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12 }
+    );
 
-  </div><!-- /dashboard -->
-<!-- Toast de aviso de expiración de sesión -->
-<div id="toast-sesion" class="toast-sesion hidden">
-  <i data-lucide="clock" aria-hidden="true"></i>
-  <span>Tu sesión expirará en <strong>1 minuto</strong>. Hacé clic para continuar.</span>
-  <button onclick="renovarSesion()">Continuar</button>
-</div>
-<!-- Modal de confirmación reutilizable -->
-<div id="modal-confirmar" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="modal-confirmar-titulo" onclick="cerrarModalConfirmar(event)">
-  <div class="modal-box modal-confirmar-box">
-    <div class="modal-confirmar-icono">
-      <i data-lucide="triangle-alert" aria-hidden="true"></i>
-    </div>
-    <h3 id="modal-confirmar-titulo">¿Estás seguro?</h3>
-    <p id="modal-confirmar-mensaje">Esta acción no se puede deshacer.</p>
-    <div class="modal-confirmar-botones">
-      <button class="btn-secundario" onclick="cancelarConfirmacion()">Cancelar</button>
-      <button class="btn-peligro" id="btn-confirmar-aceptar">Eliminar</button>
-    </div>
-  </div>
-</div>
-  <script src="script.js"></script>
-  <script>lucide.createIcons();</script>
-<!-- MODAL: Alerta / Confirmación personalizada -->
-<div id="modal-alerta" class="modal-overlay hidden" role="alertdialog" aria-modal="true" aria-labelledby="alerta-titulo">
-  <div class="modal-box modal-alerta-box">
-    <div class="modal-alerta-icono" id="alerta-icono">
-      <i data-lucide="alert-triangle"></i>
-    </div>
-    <h3 id="alerta-titulo" class="modal-alerta-titulo">Aviso</h3>
-    <p id="alerta-mensaje" class="modal-alerta-mensaje"></p>
-    <div id="alerta-botones" class="modal-alerta-botones">
-      <!-- Los botones se insertan dinámicamente -->
-    </div>
-  </div>
-</div>
+    revealEls.forEach(el => observer.observe(el));
+
+    /* ── Smooth scroll para los anchors internos ──
+       Navegación suave al hacer clic en "Conocer más" y nav links.
+    ── */
+    document.querySelectorAll('a[href^="#"]').forEach(link => {
+      link.addEventListener("click", (e) => {
+        const targetId = link.getAttribute("href").slice(1);
+        const target   = document.getElementById(targetId);
+        if (target) {
+          e.preventDefault();
+          target.scrollIntoView({ behavior: "smooth", block: "start" });
+        }
+      });
+    });
+  </script>
+
 </body>
 </html>

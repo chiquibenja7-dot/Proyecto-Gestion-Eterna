@@ -275,6 +275,9 @@ async function cargarDifuntos() {
         <button class="btn-icon" title="Ver" onclick="verDifunto(${d.id})">
           <i data-lucide="eye"></i>
         </button>
+        <button class="btn-icon" title="Editar" onclick="abrirModalEditar(${d.id})">
+          <i data-lucide="pencil"></i>
+        </button>
         <button class="btn-icon danger" title="Eliminar" onclick="eliminarDifunto(${d.id}, ${d.parcela_id || null})">
           <i data-lucide="trash-2"></i>
         </button>
@@ -934,6 +937,164 @@ function cerrarModalVerBtn() {
   const modal = document.getElementById("modal-ver-difunto");
   modal.classList.add("hidden");
   modal.classList.remove("modal-visible");
+}
+/* ================================================================
+   EDITAR DIFUNTO
+================================================================ */
+
+async function abrirModalEditar(id) {
+  // 1. Traer datos actuales del difunto + responsable
+  const { data, error } = await supabaseClient
+    .from('difuntos')
+    .select('id, nombres, apellido, ci, fecha_nacimiento, fecha_defuncion, parcela_id, responsables(id, nombre, apellido, ci, parentesco, telefono, email, direccion)')
+    .eq('id', id)
+    .single();
+
+  if (error || !data) {
+    mostrarAlerta({ titulo: "Error", mensaje: "No se pudo cargar el difunto.", tipo: "error" });
+    return;
+  }
+
+  // 2. Rellenar campos del difunto
+  document.getElementById("edit-id").value               = data.id;
+  document.getElementById("edit-parcela-anterior").value = data.parcela_id || '';
+  document.getElementById("edit-nombre").value           = data.nombres    || '';
+  document.getElementById("edit-apellido").value         = data.apellido   || '';
+  document.getElementById("edit-ci").value               = data.ci         || '';
+  document.getElementById("edit-nacimiento").value       = data.fecha_nacimiento || '';
+  document.getElementById("edit-defuncion").value        = data.fecha_defuncion  || '';
+
+  // 3. Cargar parcelas disponibles + la actual (para que aparezca en el select)
+  await cargarParcelasParaEdicion(data.parcela_id);
+
+  // 4. Rellenar campos del responsable (si existe)
+  const r = data.responsables || null;
+  document.getElementById("edit-resp-nombre").value      = r?.nombre     || '';
+  document.getElementById("edit-resp-apellido").value    = r?.apellido   || '';
+  document.getElementById("edit-resp-ci").value          = r?.ci         || '';
+  document.getElementById("edit-resp-parentesco").value  = r?.parentesco || '';
+  document.getElementById("edit-resp-telefono").value    = r?.telefono   || '';
+  document.getElementById("edit-resp-email").value       = r?.email      || '';
+  document.getElementById("edit-resp-direccion").value   = r?.direccion  || '';
+
+  // 5. Abrir modal
+  const modal = document.getElementById("modal-editar-difunto");
+  modal.classList.remove("hidden");
+  modal.classList.add("modal-visible");
+  lucide.createIcons();
+}
+
+async function cargarParcelasParaEdicion(parcelaActualId) {
+  // Traemos las disponibles + la que ya tiene asignada el difunto
+  const { data } = await supabaseClient
+    .from('parcelas')
+    .select('id, codigo, estado, zonas(nombre)')
+    .order('codigo');
+
+  const selector = document.getElementById("edit-parcela");
+  if (!selector || !data) return;
+
+  selector.innerHTML = data
+    .filter(p => p.estado === 'disponible' || p.id === parcelaActualId)
+    .map(p => {
+      const esActual = p.id === parcelaActualId;
+      return `<option value="${p.id}" ${esActual ? 'selected' : ''}>
+        ${p.codigo} (Zona ${p.zonas?.nombre || '-'})${esActual ? ' — actual' : ''}
+      </option>`;
+    }).join('');
+}
+
+function cerrarModalEditar() {
+  const modal = document.getElementById("modal-editar-difunto");
+  modal.classList.add("hidden");
+  modal.classList.remove("modal-visible");
+  document.getElementById("form-editar-difunto").reset();
+}
+
+async function guardarEdicionDifunto(evento) {
+  evento.preventDefault();
+
+  const id              = parseInt(document.getElementById("edit-id").value);
+  const parcelaAnterior = parseInt(document.getElementById("edit-parcela-anterior").value) || null;
+  const parcelaNueva    = parseInt(document.getElementById("edit-parcela").value) || null;
+
+  const nombres          = document.getElementById("edit-nombre").value.trim();
+  const apellido         = document.getElementById("edit-apellido").value.trim();
+  const fecha_defuncion  = document.getElementById("edit-defuncion").value;
+
+  if (!nombres || !apellido || !fecha_defuncion) {
+    mostrarAlerta({ titulo: "Campos incompletos", mensaje: "Nombre, apellido y fecha de defunción son obligatorios.", tipo: "warning" });
+    return;
+  }
+
+  // 1. Actualizar difunto
+  const { error: errorUpdate } = await supabaseClient
+    .from('difuntos')
+    .update({
+      nombres,
+      apellido,
+      ci:               document.getElementById("edit-ci").value.trim() || null,
+      fecha_nacimiento: document.getElementById("edit-nacimiento").value || null,
+      fecha_defuncion,
+      parcela_id:       parcelaNueva
+    })
+    .eq('id', id);
+
+  if (errorUpdate) {
+    mostrarAlerta({ titulo: "Error al guardar", mensaje: errorUpdate.message, tipo: "error" });
+    return;
+  }
+
+  // 2. Si cambió la parcela, actualizar estados
+  if (parcelaNueva !== parcelaAnterior) {
+    if (parcelaAnterior) {
+      await supabaseClient.from('parcelas').update({ estado: 'disponible' }).eq('id', parcelaAnterior);
+    }
+    if (parcelaNueva) {
+      await supabaseClient.from('parcelas').update({ estado: 'ocupada' }).eq('id', parcelaNueva);
+    }
+    await supabaseClient.from('movimientos').insert([{
+      tipo:        'traslado',
+      descripcion: `Parcela actualizada para ${nombres} ${apellido}.`,
+      parcela_id:  parcelaNueva
+    }]);
+  }
+
+  // 3. Actualizar o insertar responsable
+  const respNombre   = document.getElementById("edit-resp-nombre").value.trim();
+  const respApellido = document.getElementById("edit-resp-apellido").value.trim();
+
+  if (respNombre && respApellido) {
+    // Verificar si ya existe un responsable para este difunto
+    const { data: respExistente } = await supabaseClient
+      .from('responsables')
+      .select('id')
+      .eq('difunto_id', id)
+      .single();
+
+    const datosResp = {
+      difunto_id: id,
+      nombre:     respNombre,
+      apellido:   respApellido,
+      ci:         document.getElementById("edit-resp-ci").value.trim()         || null,
+      parentesco: document.getElementById("edit-resp-parentesco").value.trim() || null,
+      telefono:   document.getElementById("edit-resp-telefono").value.trim()   || null,
+      email:      document.getElementById("edit-resp-email").value.trim()      || null,
+      direccion:  document.getElementById("edit-resp-direccion").value.trim()  || null,
+    };
+
+    if (respExistente) {
+      // Ya existe → actualizar
+      await supabaseClient.from('responsables').update(datosResp).eq('id', respExistente.id);
+    } else {
+      // No existe → insertar
+      await supabaseClient.from('responsables').insert([datosResp]);
+    }
+  }
+
+  // 4. Cerrar modal y refrescar
+  cerrarModalEditar();
+  await Promise.all([cargarInicio(), cargarDifuntos(), generarMapa()]);
 }
 
 // Cierra al hacer clic fuera del contenido
