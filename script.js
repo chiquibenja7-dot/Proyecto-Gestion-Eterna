@@ -352,7 +352,7 @@ async function eliminarDifunto(difuntoId, parcelaId) {
     .eq('id', difuntoId);
 
   if (errorDelete) {
-    alert("Error al eliminar: " + errorDelete.message);
+    mostrarAlerta({ titulo: "Error al eliminar", mensaje: "No se pudo eliminar el difunto: " + errorDelete.message, tipo: "error" });
     return;
   }
 
@@ -663,7 +663,66 @@ const debounceBuscar = debounce(buscar, 400);
    Columna correcta: nombres (plural)
    No existe causa_defuncion en la tabla — removido
 ================================================================ */
+/* ================================================================
+   MODAL DE ALERTA Y CONFIRMACIÓN PERSONALIZADO
+   Reemplaza alert() y confirm() nativos del navegador
+================================================================ */
 
+function mostrarAlerta({ titulo = "Aviso", mensaje, tipo = "warning" }) {
+  const iconos = {
+    warning: "alert-triangle",
+    error:   "alert-circle",
+    success: "check-circle"
+  };
+
+  const modal  = document.getElementById("modal-alerta");
+  const iconEl = document.getElementById("alerta-icono");
+
+  document.getElementById("alerta-titulo").textContent  = titulo;
+  document.getElementById("alerta-mensaje").textContent = mensaje;
+
+  iconEl.className = "modal-alerta-icono " + (tipo === "error" ? "error" : tipo === "success" ? "success" : "");
+  iconEl.innerHTML = `<i data-lucide="${iconos[tipo] || 'alert-triangle'}"></i>`;
+
+  document.getElementById("alerta-botones").innerHTML = `
+    <button class="btn-alerta-ok" onclick="cerrarAlerta()">Entendido</button>
+  `;
+
+  modal.classList.remove("hidden");
+  modal.classList.add("modal-visible");
+  lucide.createIcons();
+}
+
+function mostrarConfirmacion({ titulo = "¿Estás seguro?", mensaje, onConfirmar }) {
+  const modal  = document.getElementById("modal-alerta");
+  const iconEl = document.getElementById("alerta-icono");
+
+  document.getElementById("alerta-titulo").textContent  = titulo;
+  document.getElementById("alerta-mensaje").textContent = mensaje;
+
+  iconEl.className = "modal-alerta-icono error";
+  iconEl.innerHTML = `<i data-lucide="trash-2"></i>`;
+
+  document.getElementById("alerta-botones").innerHTML = `
+    <button class="btn-alerta-cancelar" onclick="cerrarAlerta()">Cancelar</button>
+    <button class="btn-alerta-ok danger" id="btn-confirmar-accion">Eliminar</button>
+  `;
+
+  modal.classList.remove("hidden");
+  modal.classList.add("modal-visible");
+  lucide.createIcons();
+
+  document.getElementById("btn-confirmar-accion").addEventListener("click", () => {
+    cerrarAlerta();
+    onConfirmar();
+  });
+}
+
+function cerrarAlerta() {
+  const modal = document.getElementById("modal-alerta");
+  modal.classList.add("hidden");
+  modal.classList.remove("modal-visible");
+}
 async function registrarDifunto(evento) {
   evento.preventDefault();
 
@@ -676,8 +735,8 @@ async function registrarDifunto(evento) {
     parcela_id:       parseInt(document.getElementById("f-parcela").value)
   };
 
-  if (!datosDifunto.nombres || !datosDifunto.apellido || !datosDifunto.fecha_defuncion || !datosDifunto.parcela_id) {
-    alert("Completá los campos obligatorios.");
+if (!datosDifunto.nombres || !datosDifunto.apellido || !datosDifunto.fecha_defuncion || !datosDifunto.parcela_id) {
+    mostrarAlerta({ titulo: "Campos incompletos", mensaje: "Por favor completá nombre, apellido, fecha de defunción y parcela antes de guardar.", tipo: "warning" });
     return;
   }
 
@@ -687,10 +746,8 @@ async function registrarDifunto(evento) {
     .select()
     .single();
 
-  if (errorDifunto) {
-    alert("Error al guardar el difunto: " + errorDifunto.message);
-    return;
-  }
+ // DESPUÉS:
+    mostrarAlerta({ titulo: "Error al guardar", mensaje: "No se pudo guardar el difunto: " + errorDifunto.message, tipo: "error" });
 
   await supabaseClient.from('parcelas').update({ estado: 'ocupada' }).eq('id', datosDifunto.parcela_id);
 
@@ -715,7 +772,7 @@ async function registrarDifunto(evento) {
     }]);
     if (errorResp) {
       console.error("Error responsable:", errorResp.message);
-      alert("Difunto guardado, pero error en responsable: " + errorResp.message);
+      mostrarAlerta({ titulo: "Error al guardar", mensaje: "No se pudo guardar el responsable: " + errorResp.message, tipo: "error" });
     }
   }
 
@@ -810,7 +867,7 @@ async function registrarResponsable(evento) {
   const apellido  = document.getElementById("fr-apellido").value.trim();
 
   if (!difuntoId || !nombre || !apellido) {
-    alert("Completá los campos obligatorios: difunto, nombre y apellido.");
+    mostrarAlerta({ titulo: "Campos incompletos", mensaje: "Por favor completá los campos obligatorios: difunto, nombre y apellido.", tipo: "warning" });
     return;
   }
 
@@ -825,7 +882,7 @@ async function registrarResponsable(evento) {
     direccion:  document.getElementById("fr-direccion").value.trim()  || null,
   }]);
 
-  if (error) { alert("Error al guardar el responsable: " + error.message); return; }
+  if (error) { mostrarAlerta({ titulo: "Error al guardar", mensaje: "No se pudo guardar el responsable: " + error.message, tipo: "error" }); return; }
 
   cerrarModalResponsable();
   await cargarResponsables();

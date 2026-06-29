@@ -1228,3 +1228,115 @@ input {
 .sidebar.collapsed {
   left: calc(-1 * var(--sidebar-width));
 }
+.btn-back-home {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 28px;
+  color: #64748b;
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: var(--radius-sm);
+  border: 1px solid rgba(255,255,255,0.08);
+  text-decoration: none;
+  transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.btn-back-home:hover {
+  color: rgb(14, 4, 4);
+  border-color: rgba(255,255,255,0.25);
+  background: rgba(255,255,255,0.06);
+}
+/* ================================================================
+   13. MODAL DE ALERTA / CONFIRMACIÓN PERSONALIZADO
+================================================================ */
+.modal-alerta-box {
+  max-width: 380px;
+  text-align: center;
+  animation: modalEntrada 0.2s ease;
+}
+
+.modal-alerta-icono {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.modal-alerta-icono.error {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.modal-alerta-icono.success {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.modal-alerta-icono svg {
+  width: 28px;
+  height: 28px;
+}
+
+.modal-alerta-titulo {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: var(--color-text);
+}
+
+.modal-alerta-mensaje {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  margin-bottom: 24px;
+  line-height: 1.6;
+}
+
+.modal-alerta-botones {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.btn-alerta-ok {
+  padding: 9px 24px;
+  background: var(--color-accent);
+  color: white;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-alerta-ok:hover { background: var(--color-accent-dark); }
+
+.btn-alerta-ok.danger {
+  background: #dc2626;
+}
+
+.btn-alerta-ok.danger:hover { background: #b91c1c; }
+
+.btn-alerta-cancelar {
+  padding: 9px 24px;
+  background: transparent;
+  color: var(--color-text-muted);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-alerta-cancelar:hover {
+  background: var(--color-bg);
+  color: var(--color-text);
+}

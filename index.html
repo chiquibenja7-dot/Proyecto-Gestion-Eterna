@@ -22,7 +22,7 @@
         <div class="login-logo-icon">
           <i data-lucide="map-pin" aria-hidden="true"></i>
         </div>
-        <h1 class="login-title-big">CementerioAdmin</h1>
+        <h1 class="login-title-big">Gestión Eterna</h1>
         <p class="login-subtitle">Sistema de Administración Interna</p>
       </div>
       <div class="login-decoration">
@@ -43,6 +43,13 @@
 
     <div class="login-panel-right">
       <div class="login-form-box">
+        <a href="home.html" class="btn-back-home">
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="19" y1="12" x2="5" y2="12"/>
+    <polyline points="12 19 5 12 12 5"/>
+  </svg>
+  Volver al inicio
+</a>
         <h2 class="login-form-title">Iniciar sesión</h2>
         <p class="login-form-desc">Ingresa tus credenciales de administrador</p>
 
@@ -698,6 +705,18 @@
 </div>
   <script src="script.js"></script>
   <script>lucide.createIcons();</script>
-
+<!-- MODAL: Alerta / Confirmación personalizada -->
+<div id="modal-alerta" class="modal-overlay hidden" role="alertdialog" aria-modal="true" aria-labelledby="alerta-titulo">
+  <div class="modal-box modal-alerta-box">
+    <div class="modal-alerta-icono" id="alerta-icono">
+      <i data-lucide="alert-triangle"></i>
+    </div>
+    <h3 id="alerta-titulo" class="modal-alerta-titulo">Aviso</h3>
+    <p id="alerta-mensaje" class="modal-alerta-mensaje"></p>
+    <div id="alerta-botones" class="modal-alerta-botones">
+      <!-- Los botones se insertan dinámicamente -->
+    </div>
+  </div>
+</div>
 </body>
 </html>
