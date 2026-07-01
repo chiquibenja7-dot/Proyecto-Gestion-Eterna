@@ -1107,5 +1107,6 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Así cualquier recarga, cierre de pestaña o navegador
   // obliga al usuario a volver a autenticarse.
   await supabaseClient.auth.signOut();
+  verificarSesionExistente();
   lucide.createIcons();
 });
