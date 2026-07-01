@@ -743,24 +743,18 @@ if (!datosDifunto.nombres || !datosDifunto.apellido || !datosDifunto.fecha_defun
     return;
   }
 
-  const { data: difunto, error: errorDifunto } = await supabaseClient
+ const { data: difunto, error: errorDifunto } = await supabaseClient
     .from('difuntos')
     .insert([datosDifunto])
     .select()
     .single();
 
- // DESPUÉS:
+  if (errorDifunto) {
     mostrarAlerta({ titulo: "Error al guardar", mensaje: "No se pudo guardar el difunto: " + errorDifunto.message, tipo: "error" });
+    return;
+  }
 
   await supabaseClient.from('parcelas').update({ estado: 'ocupada' }).eq('id', datosDifunto.parcela_id);
-
-  await supabaseClient.from('movimientos').insert([{
-    tipo:        'ingreso',
-    descripcion: 'Registro de ' + datosDifunto.nombres + ' ' + datosDifunto.apellido,
-    difunto_id:  difunto.id,
-    parcela_id:  datosDifunto.parcela_id
-  }]);
-
   const respNombre = document.getElementById("f-resp-nombre").value.trim();
   if (respNombre) {
     const { error: errorResp } = await supabaseClient.from('responsables').insert([{
