@@ -735,6 +735,7 @@ async function registrarDifunto(evento) {
     ci:               document.getElementById("f-ci").value.trim() || null,
     fecha_nacimiento: document.getElementById("f-nacimiento").value || null,
     fecha_defuncion:  document.getElementById("f-defuncion").value,
+     causa_defuncion:  document.getElementById("f-causa").value.trim() || null,
     parcela_id:       parseInt(document.getElementById("f-parcela").value)
   };
 
@@ -743,24 +744,18 @@ if (!datosDifunto.nombres || !datosDifunto.apellido || !datosDifunto.fecha_defun
     return;
   }
 
-  const { data: difunto, error: errorDifunto } = await supabaseClient
+ const { data: difunto, error: errorDifunto } = await supabaseClient
     .from('difuntos')
     .insert([datosDifunto])
     .select()
     .single();
 
- // DESPUÉS:
+  if (errorDifunto) {
     mostrarAlerta({ titulo: "Error al guardar", mensaje: "No se pudo guardar el difunto: " + errorDifunto.message, tipo: "error" });
+    return;
+  }
 
   await supabaseClient.from('parcelas').update({ estado: 'ocupada' }).eq('id', datosDifunto.parcela_id);
-
-  await supabaseClient.from('movimientos').insert([{
-    tipo:        'ingreso',
-    descripcion: 'Registro de ' + datosDifunto.nombres + ' ' + datosDifunto.apellido,
-    difunto_id:  difunto.id,
-    parcela_id:  datosDifunto.parcela_id
-  }]);
-
   const respNombre = document.getElementById("f-resp-nombre").value.trim();
   if (respNombre) {
     const { error: errorResp } = await supabaseClient.from('responsables').insert([{
@@ -909,9 +904,9 @@ function mostrarCargando(tbodyId, columnas) {
 }
 
 async function verDifunto(id) {
-  const { data, error } = await supabaseClient
+const { data, error } = await supabaseClient
     .from('difuntos')
-    .select('nombres, apellido, ci, fecha_nacimiento, fecha_defuncion, parcelas(codigo), responsables(nombre, apellido, telefono)')
+    .select('nombres, apellido, ci, fecha_nacimiento, fecha_defuncion, causa_defuncion, parcelas(codigo), responsables(nombre, apellido, telefono)')
     .eq('id', id)
     .single();
 
@@ -1113,5 +1108,6 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Así cualquier recarga, cierre de pestaña o navegador
   // obliga al usuario a volver a autenticarse.
   await supabaseClient.auth.signOut();
+  verificarSesionExistente();
   lucide.createIcons();
 });
