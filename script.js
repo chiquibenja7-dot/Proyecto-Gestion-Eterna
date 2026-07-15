@@ -735,6 +735,7 @@ async function registrarDifunto(evento) {
     ci:               document.getElementById("f-ci").value.trim() || null,
     fecha_nacimiento: document.getElementById("f-nacimiento").value || null,
     fecha_defuncion:  document.getElementById("f-defuncion").value,
+     causa_defuncion:  document.getElementById("f-causa").value.trim() || null,
     parcela_id:       parseInt(document.getElementById("f-parcela").value)
   };
 
@@ -903,9 +904,9 @@ function mostrarCargando(tbodyId, columnas) {
 }
 
 async function verDifunto(id) {
-  const { data, error } = await supabaseClient
+const { data, error } = await supabaseClient
     .from('difuntos')
-    .select('nombres, apellido, ci, fecha_nacimiento, fecha_defuncion, parcelas(codigo), responsables(nombre, apellido, telefono)')
+    .select('nombres, apellido, ci, fecha_nacimiento, fecha_defuncion, causa_defuncion, parcelas(codigo), responsables(nombre, apellido, telefono)')
     .eq('id', id)
     .single();
 
