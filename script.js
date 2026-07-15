@@ -43,31 +43,9 @@ async function iniciarSesion() {
   }
 
   errorMsg.classList.add("hidden");
-  document.getElementById("login-screen").classList.add("hidden");
-  document.getElementById("dashboard").classList.remove("hidden");
-  document.getElementById("topbar-username").textContent = data.user.email;
-
-  await cargarInicio();
-  await generarMapa();
-  lucide.createIcons();
-}
-
-document.addEventListener("DOMContentLoaded", function () {
-  const inputPass = document.getElementById("password");
-  if (inputPass) {
-    inputPass.addEventListener("keydown", function (e) {
-      if (e.key === "Enter") iniciarSesion();
-    });
-  }
-});
-
-async function cerrarSesion() {
-  await supabaseClient.auth.signOut();
-  document.getElementById("username").value = "";
-  document.getElementById("password").value = "";
-  document.getElementById("dashboard").classList.add("hidden");
-  document.getElementById("login-screen").classList.remove("hidden");
-  lucide.createIcons();
+  // El resto (ocultar login, mostrar dashboard, cargar datos)
+  // ya lo hace automáticamente el listener onAuthStateChange
+  // al detectar el evento SIGNED_IN — no lo repetimos acá.
 }
 
 /* ================================================================
