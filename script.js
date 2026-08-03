@@ -217,7 +217,7 @@ async function cargarInicio() {
 
   const { data: ultimos, error } = await supabaseClient
     .from('difuntos')
-    .select('nombres, apellido, fecha_defuncion, parcelas(codigo, zonas(nombre))')
+    .select('nombres, apellido, fecha_defuncion, registrado_en, parcelas(codigo, zonas(nombre))')
     .order('registrado_en', { ascending: false })
     .limit(5);
 
@@ -225,13 +225,13 @@ async function cargarInicio() {
 
   const tbody = document.getElementById("tabla-inicio-body");
   if (tbody && ultimos) {
-    tbody.innerHTML = ultimos.map((d, i) => `
+ tbody.innerHTML = ultimos.map((d, i) => `
       <tr>
         <td>${String(i + 1).padStart(3, '0')}</td>
         <td>${d.nombres} ${d.apellido}</td>
         <td>${d.parcelas?.zonas?.nombre || '-'}</td>
         <td>${d.parcelas?.codigo || '-'}</td>
-        <td>${formatearFecha(d.fecha_defuncion)}</td>
+        <td>${formatearFecha(d.registrado_en)}</td>
         <td><span class="badge red">Ocupada</span></td>
       </tr>
     `).join('');
@@ -743,6 +743,10 @@ if (!datosDifunto.nombres || !datosDifunto.apellido || !datosDifunto.fecha_defun
     mostrarAlerta({ titulo: "Campos incompletos", mensaje: "Por favor completá nombre, apellido, fecha de defunción y parcela antes de guardar.", tipo: "warning" });
     return;
   }
+if (datosDifunto.fecha_nacimiento && datosDifunto.fecha_nacimiento >= datosDifunto.fecha_defuncion) {
+    mostrarAlerta({ titulo: "Fechas inválidas", mensaje: "La fecha de defunción debe ser posterior a la fecha de nacimiento.", tipo: "warning" });
+    return;
+  }
 
  const { data: difunto, error: errorDifunto } = await supabaseClient
     .from('difuntos')
@@ -756,6 +760,14 @@ if (!datosDifunto.nombres || !datosDifunto.apellido || !datosDifunto.fecha_defun
   }
 
   await supabaseClient.from('parcelas').update({ estado: 'ocupada' }).eq('id', datosDifunto.parcela_id);
+
+  await supabaseClient.from('movimientos').insert([{
+    tipo:        'ingreso',
+    descripcion: 'Registro de ' + datosDifunto.nombres + ' ' + datosDifunto.apellido,
+    difunto_id:  difunto.id,
+    parcela_id:  datosDifunto.parcela_id
+  }]);
+
   const respNombre = document.getElementById("f-resp-nombre").value.trim();
   if (respNombre) {
     const { error: errorResp } = await supabaseClient.from('responsables').insert([{
@@ -1019,6 +1031,11 @@ async function guardarEdicionDifunto(evento) {
 
   if (!nombres || !apellido || !fecha_defuncion) {
     mostrarAlerta({ titulo: "Campos incompletos", mensaje: "Nombre, apellido y fecha de defunción son obligatorios.", tipo: "warning" });
+    return;
+  }
+  const fecha_nacimiento = document.getElementById("edit-nacimiento").value;
+  if (fecha_nacimiento && fecha_nacimiento >= fecha_defuncion) {
+    mostrarAlerta({ titulo: "Fechas inválidas", mensaje: "La fecha de defunción debe ser posterior a la fecha de nacimiento.", tipo: "warning" });
     return;
   }
 
