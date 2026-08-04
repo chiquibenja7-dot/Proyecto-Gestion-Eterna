@@ -754,8 +754,12 @@ if (datosDifunto.fecha_nacimiento && datosDifunto.fecha_nacimiento >= datosDifun
     .select()
     .single();
 
-  if (errorDifunto) {
-    mostrarAlerta({ titulo: "Error al guardar", mensaje: "No se pudo guardar el difunto: " + errorDifunto.message, tipo: "error" });
+ if (errorDifunto) {
+    if (errorDifunto.code === '23505') {
+      mostrarAlerta({ titulo: "Cédula duplicada", mensaje: mensajeErrorUnico(errorDifunto), tipo: "error" });
+    } else {
+      mostrarAlerta({ titulo: "Error al guardar", mensaje: "No se pudo guardar el difunto: " + errorDifunto.message, tipo: "error" });
+    }
     return;
   }
 
@@ -946,6 +950,24 @@ function cerrarModalVerBtn() {
   modal.classList.remove("modal-visible");
 }
 /* ================================================================
+   Traduce errores de restricción UNIQUE de Postgres a mensajes humanos.
+   Se basa en el nombre de la constraint (ej: "difuntos_ci_key").
+================================================================ */
+function mensajeErrorUnico(error) {
+  const constraint = error.message || '';
+
+  const mapaConstraints = {
+    'difuntos_ci_key':       'Ya existe otro difunto registrado con esa cédula de identidad.',
+    'responsables_ci_key':   'Ya existe otro responsable registrado con esa cédula de identidad.',
+  };
+
+  for (const key in mapaConstraints) {
+    if (constraint.includes(key)) return mapaConstraints[key];
+  }
+
+  return 'Ya existe un registro con ese mismo dato único. Verificá la información e intentá de nuevo.';
+}
+/* ================================================================
    EDITAR DIFUNTO
 ================================================================ */
 
@@ -1053,7 +1075,11 @@ async function guardarEdicionDifunto(evento) {
     .eq('id', id);
 
   if (errorUpdate) {
-    mostrarAlerta({ titulo: "Error al guardar", mensaje: errorUpdate.message, tipo: "error" });
+    if (errorUpdate.code === '23505') {
+      mostrarAlerta({ titulo: "Cédula duplicada", mensaje: mensajeErrorUnico(errorUpdate), tipo: "error" });
+    } else {
+      mostrarAlerta({ titulo: "Error al guardar", mensaje: errorUpdate.message, tipo: "error" });
+    }
     return;
   }
 
