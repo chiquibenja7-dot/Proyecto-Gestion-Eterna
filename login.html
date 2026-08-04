@@ -830,6 +830,19 @@
     </div>
   </div>
 </div>
+<!-- Modal de alerta / confirmación personalizado -->
+<div id="modal-alerta" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="alerta-titulo">
+  <div class="modal-box modal-alerta-box">
+    <div id="alerta-icono" class="modal-alerta-icono">
+      <i data-lucide="alert-triangle" aria-hidden="true"></i>
+    </div>
+    <h3 id="alerta-titulo" class="modal-alerta-titulo">Aviso</h3>
+    <p id="alerta-mensaje" class="modal-alerta-mensaje"></p>
+    <div id="alerta-botones" class="modal-alerta-botones">
+      <button class="btn-alerta-ok" onclick="cerrarAlerta()">Entendido</button>
+    </div>
+  </div>
+</div>
   <script src="script.js"></script>
   <script>lucide.createIcons();</script>
 
