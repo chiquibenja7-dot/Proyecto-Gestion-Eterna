@@ -449,6 +449,10 @@
           <span id="ver-defuncion" class="modal-ver-value"></span>
         </div>
         <div class="modal-ver-item">
+          <span class="modal-ver-label">Causa de defunción</span>
+          <span id="ver-causa" class="modal-ver-value"></span>
+        </div>
+        <div class="modal-ver-item">
           <span class="modal-ver-label">Parcela</span>
           <span id="ver-parcela" class="modal-ver-value"></span>
         </div>
@@ -517,6 +521,18 @@
           <input type="date" id="edit-defuncion" required />
         </div>
       </div>
+      <div class="form-group">
+  <label for="edit-defuncion">Fecha de defunción *</label>
+  <div class="input-wrapper">
+    <input type="date" id="edit-defuncion" required />
+  </div>
+</div>
+<div class="form-group">
+  <label for="edit-causa">Causa de defunción</label>
+  <div class="input-wrapper">
+    <input type="text" id="edit-causa" placeholder="Opcional" autocomplete="off" />
+  </div>
+</div>
       <div class="form-group">
         <label for="edit-parcela">Parcela</label>
         <select id="edit-parcela" class="select-field">
@@ -811,6 +827,18 @@
     <div class="modal-confirmar-botones">
       <button class="btn-secundario" onclick="cancelarConfirmacion()">Cancelar</button>
       <button class="btn-peligro" id="btn-confirmar-aceptar">Eliminar</button>
+    </div>
+  </div>
+</div>
+<div id="modal-alerta" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="alerta-titulo">
+  <div class="modal-box modal-alerta-box">
+    <div id="alerta-icono" class="modal-alerta-icono">
+      <i data-lucide="alert-triangle" aria-hidden="true"></i>
+    </div>
+    <h3 id="alerta-titulo" class="modal-alerta-titulo">Aviso</h3>
+    <p id="alerta-mensaje" class="modal-alerta-mensaje"></p>
+    <div id="alerta-botones" class="modal-alerta-botones">
+      <button class="btn-alerta-ok" onclick="cerrarAlerta()">Entendido</button>
     </div>
   </div>
 </div>

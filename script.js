@@ -228,7 +228,7 @@ async function cargarDifuntos() {
 
   const { data, error } = await supabaseClient
     .from('difuntos')
-    .select('id, nombres, apellido, ci, fecha_nacimiento, fecha_defuncion, parcela_id, parcelas(codigo, zonas(nombre))')
+    .select('id, nombres, apellido, ci, fecha_nacimiento, fecha_defuncion, causa_defuncion, parcela_id, parcelas(codigo, zonas(nombre))')
     .order('registrado_en', { ascending: false });
 
   if (error) { console.error("cargarDifuntos:", error.message); return; }
@@ -896,6 +896,7 @@ const { data, error } = await supabaseClient
   document.getElementById("ver-ci").textContent          = data.ci || '—';
   document.getElementById("ver-nacimiento").textContent  = formatearFecha(data.fecha_nacimiento);
   document.getElementById("ver-defuncion").textContent   = formatearFecha(data.fecha_defuncion);
+  document.getElementById("ver-causa").textContent       = data.causa_defuncion || '—';
   document.getElementById("ver-parcela").textContent     = data.parcelas?.codigo || '—';
   document.getElementById("ver-resp-nombre").textContent = r ? r.nombre + ' ' + r.apellido : '—';
   document.getElementById("ver-resp-tel").textContent    = r?.telefono || '—';
@@ -919,7 +920,7 @@ async function abrirModalEditar(id) {
   // 1. Traer datos actuales del difunto + responsable
   const { data, error } = await supabaseClient
     .from('difuntos')
-    .select('id, nombres, apellido, ci, fecha_nacimiento, fecha_defuncion, parcela_id, responsables(id, nombre, apellido, ci, parentesco, telefono, email, direccion)')
+    .select('id, nombres, apellido, ci, fecha_nacimiento, fecha_defuncion, causa_defuncion, parcela_id, responsables(id, nombre, apellido, ci, parentesco, telefono, email, direccion)')
     .eq('id', id)
     .single();
 
@@ -936,7 +937,7 @@ async function abrirModalEditar(id) {
   document.getElementById("edit-ci").value               = data.ci         || '';
   document.getElementById("edit-nacimiento").value       = data.fecha_nacimiento || '';
   document.getElementById("edit-defuncion").value        = data.fecha_defuncion  || '';
-
+  document.getElementById("edit-causa").value            = data.causa_defuncion || '';
   // 3. Cargar parcelas disponibles + la actual (para que aparezca en el select)
   await cargarParcelasParaEdicion(data.parcela_id);
 
@@ -994,6 +995,7 @@ async function guardarEdicionDifunto(evento) {
   const nombres          = document.getElementById("edit-nombre").value.trim();
   const apellido         = document.getElementById("edit-apellido").value.trim();
   const fecha_defuncion  = document.getElementById("edit-defuncion").value;
+  const causa_defuncion = document.getElementById("edit-causa").value.trim() || null;
 
   if (!nombres || !apellido || !fecha_defuncion) {
     mostrarAlerta({ titulo: "Campos incompletos", mensaje: "Nombre, apellido y fecha de defunción son obligatorios.", tipo: "warning" });
@@ -1009,6 +1011,7 @@ async function guardarEdicionDifunto(evento) {
       ci:               document.getElementById("edit-ci").value.trim() || null,
       fecha_nacimiento: document.getElementById("edit-nacimiento").value || null,
       fecha_defuncion,
+      causa_defuncion,
       parcela_id:       parcelaNueva
     })
     .eq('id', id);
