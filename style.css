@@ -696,6 +696,10 @@ input {
   background: #dbeafe;
   color: #1d4ed8;
 }
+.badge.orange {
+  background: #ede9fe;
+  color: #6d28d9;
+}
 
 /* ----- Botón primario ----- */
 .btn-primary {
@@ -901,7 +905,13 @@ input {
   flex-shrink: 0;
   color: var(--color-text-muted);
 }
-
+.info-panel:not(.hidden) {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1001;
+}
 
 /* ================================================================
    10. BUSCADOR

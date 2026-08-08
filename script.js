@@ -451,6 +451,16 @@ async function cargarParcelas() {
    4E. MOVIMIENTOS
 ================================================================ */
 
+function claseBadge(tipo) {
+  switch ((tipo || '').toLowerCase()) {
+    case 'ingreso': return 'badge green';
+    case 'baja': return 'badge red';
+    case 'traslado': return 'badge orange';
+    case 'edición': return 'badge blue';
+    default: return 'badge';
+  }
+}
+
 async function cargarMovimientos() {
   mostrarCargando("tabla-mov-body", 5);
 
@@ -467,14 +477,13 @@ async function cargarMovimientos() {
   tbody.innerHTML = data.map((m, i) => `
     <tr>
       <td>${String(i + 1).padStart(3, '0')}</td>
-      <td><span class="badge blue">${m.tipo}</span></td>
+      <td><span class="${claseBadge(m.tipo)}">${m.tipo}</span></td>
       <td>${m.descripcion || '-'}</td>
       <td>${m.parcelas?.codigo || '-'}</td>
       <td>${formatearFecha(m.fecha)}</td>
     </tr>
   `).join('');
 }
-
 
 /* ================================================================
    5. MAPA INTERACTIVO
@@ -1085,7 +1094,7 @@ async function guardarEdicionDifunto(evento) {
 // Registrar movimiento de edición general (si no hubo cambio de parcela, igual dejamos constancia)
 if (parcelaNueva === parcelaAnterior) {
   await supabaseClient.from('movimientos').insert([{
-    tipo:        'edicion',
+    tipo:        'edición',
     descripcion: `Datos actualizados para ${nombres} ${apellido}.`,
     parcela_id:  parcelaNueva
   }]);
