@@ -50,13 +50,13 @@ async function iniciarSesion() {
 
 /* ================================================================
    MANEJO DE SESIÓN CON EXPIRACIÓN POR INACTIVIDAD
-   - Tiempo máximo de inactividad: 30 minutos
+   - Tiempo máximo de inactividad: 10 minutos
    - Aviso 1 minuto antes de cerrar
    - Se resetea con cualquier interacción del usuario
 ================================================================ */
 
-const TIEMPO_INACTIVIDAD_MS = 29 * 60 * 1000; // 29 min → muestra aviso
-const TIEMPO_CIERRE_MS      = 30 * 60 * 1000; // 30 min → cierra sesión
+const TIEMPO_INACTIVIDAD_MS = 9 * 60 * 1000; // 9 min → muestra aviso
+const TIEMPO_CIERRE_MS      = 10 * 60 * 1000; // 10 min → cierra sesión
 
 let temporizadorAviso  = null;
 let temporizadorCierre = null;
@@ -65,13 +65,13 @@ function iniciarTemporizadores() {
   clearTimeout(temporizadorAviso);
   clearTimeout(temporizadorCierre);
 
-  // A los 29 minutos → mostrar aviso
+  // A los 9 minutos → mostrar aviso
   temporizadorAviso = setTimeout(() => {
     document.getElementById("toast-sesion").classList.remove("hidden");
     lucide.createIcons();
   }, TIEMPO_INACTIVIDAD_MS);
 
-  // A los 30 minutos → cerrar sesión
+  // A los 10 minutos → cerrar sesión
   temporizadorCierre = setTimeout(async () => {
     document.getElementById("toast-sesion").classList.add("hidden");
     await cerrarSesion();
@@ -101,6 +101,10 @@ function resetearInactividad() {
 async function renovarSesion() {
   document.getElementById("toast-sesion").classList.add("hidden");
   iniciarTemporizadores();
+}
+function cerrarSesion() {
+  supabaseClient.auth.signOut();
+  detenerTemporizadores();
 }
 
 function verificarSesionExistente() {
@@ -1078,7 +1082,14 @@ async function guardarEdicionDifunto(evento) {
       parcela_id:  parcelaNueva
     }]);
   }
-
+// Registrar movimiento de edición general (si no hubo cambio de parcela, igual dejamos constancia)
+if (parcelaNueva === parcelaAnterior) {
+  await supabaseClient.from('movimientos').insert([{
+    tipo:        'edicion',
+    descripcion: `Datos actualizados para ${nombres} ${apellido}.`,
+    parcela_id:  parcelaNueva
+  }]);
+}
   // 3. Actualizar o insertar responsable
   const respNombre   = document.getElementById("edit-resp-nombre").value.trim();
   const respApellido = document.getElementById("edit-resp-apellido").value.trim();
