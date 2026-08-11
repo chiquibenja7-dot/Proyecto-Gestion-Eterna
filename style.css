@@ -1407,3 +1407,110 @@ input {
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
+/* ================================================================
+   13. RESPONSIVE — agregar al final de style.css
+   Breakpoint principal: 768px (tablet/mobile)
+================================================================ */
+
+@media (max-width: 768px) {
+
+  /* ---- Login: apilar en vez de lado a lado ---- */
+  .login-screen {
+    flex-direction: column;
+  }
+  .login-panel-left,
+  .login-panel-right {
+    width: 100%;
+    padding: 32px 20px;
+  }
+  .login-panel-left {
+    padding: 32px 20px 24px;
+    gap: 24px;
+  }
+
+  /* ---- Sidebar: se convierte en drawer off-canvas ---- */
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    width: 240px;
+  }
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* El contenido ya no reserva espacio del sidebar */
+  .main-content {
+    margin-left: 0;
+  }
+
+  /* Botón hamburguesa siempre visible en mobile */
+  .topbar-menu-btn {
+    display: flex;
+  }
+
+  /* Oscurecer el fondo cuando el sidebar está abierto */
+  .sidebar.open::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    left: 240px;
+    background: rgba(0,0,0,0.35);
+  }
+
+  .content-area {
+    padding: 18px 14px;
+  }
+
+  /* ---- Mapa: 1 columna en vez de 2x2 ---- */
+  .map-container {
+    grid-template-columns: 1fr;
+  }
+
+  /* Casillas de parcela un poco más grandes al tacto */
+  .zone-grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  .parcela-cell {
+    font-size: 0.7rem;
+  }
+
+  /* ---- Tablas: scroll horizontal en vez de romper el layout ---- */
+  .table-card {
+    overflow-x: auto;
+  }
+  .data-table {
+    min-width: 640px; /* fuerza el scroll en vez de aplastar columnas */
+  }
+
+  /* ---- Stats: una columna en pantallas muy chicas ---- */
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* ---- Modales: menos padding, ocupan casi todo el ancho ---- */
+  .modal-box {
+    padding: 20px;
+    max-width: 100%;
+  }
+  .form-row {
+    flex-direction: column;
+  }
+
+  /* ---- Topbar más compacta ---- */
+  .topbar {
+    padding: 0 14px;
+  }
+  .topbar-user span {
+    display: none; /* deja solo el ícono en mobile */
+  }
+}
+
+@media (max-width: 420px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .zone-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
